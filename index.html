@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="文化祭カフェのモバイルオーダー">
+  <title>よりみちカフェ | モバイルオーダー</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html"><span class="brand-mark">☕</span><span>よりみちカフェ<small>文化祭限定</small></span></a>
+    <a class="header-link" href="admin.html">店員用画面 →</a>
+  </header>
+  <main class="customer-page">
+    <section class="hero">
+      <p class="eyebrow">CULTURAL FESTIVAL 2025</p>
+      <h1>ひと息ついて、<br><em>よりみち</em>しよう。</h1>
+      <p>スマホからかんたん注文。できあがったら番号でお呼びします。</p>
+    </section>
+    <section class="menu-section" aria-labelledby="menu-title">
+      <div class="section-heading"><div><p class="eyebrow">MENU</p><h2 id="menu-title">本日のメニュー</h2></div><span id="cart-count" class="cart-count">0点</span></div>
+      <div id="menu-list" class="menu-grid"></div>
+    </section>
+  </main>
+  <button id="cart-button" class="cart-button" type="button" aria-label="カートを開く"><span>🛒</span><span>カートを見る</span><strong id="cart-total">¥0</strong></button>
+  <dialog id="cart-dialog" class="modal"><div class="modal-content"><div class="modal-header"><h2>注文内容</h2><button class="icon-button" data-close="cart-dialog" aria-label="閉じる">×</button></div><div id="cart-items"></div><div class="total-row"><span>合計</span><strong id="dialog-total">¥0</strong></div><button id="checkout-button" class="primary-button" type="button">注文を確定する</button></div></dialog>
+  <dialog id="status-dialog" class="modal"><div class="modal-content status-content"><button class="icon-button" data-close="status-dialog" aria-label="閉じる">×</button><div id="status-content"></div></div></dialog>
+  <script src="js/store.js"></script>
+  <script src="js/menu.js"></script>
+  <script src="js/order.js"></script>
+</body>
+</html>

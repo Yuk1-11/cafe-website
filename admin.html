@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>管理画面 | よりみちカフェ</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="admin-body">
+  <header class="site-header"><a class="brand" href="index.html"><span class="brand-mark">☕</span><span>よりみちカフェ<small>スタッフ管理</small></span></a><a class="header-link" href="index.html">お客さま画面 →</a></header>
+  <main class="admin-page">
+    <section id="login-panel" class="login-panel">
+      <p class="eyebrow">STAFF ONLY</p><h1>管理画面にログイン</h1><p>デモ環境ではスタッフコード <strong>cafe2025</strong> を入力してください。</p>
+      <form id="login-form"><label>スタッフコード<input id="staff-code" type="password" required autocomplete="off"></label><button class="primary-button" type="submit">ログイン</button><p id="login-error" class="form-error" role="alert"></p></form>
+    </section>
+    <section id="dashboard" class="dashboard hidden">
+      <div class="dashboard-heading"><div><p class="eyebrow">DASHBOARD</p><h1>店舗ダッシュボード</h1></div><button id="logout-button" class="secondary-button" type="button">ログアウト</button></div>
+      <div id="stats" class="stats"></div>
+      <div class="admin-tabs"><button class="tab active" data-tab="orders">注文管理</button><button class="tab" data-tab="products">商品・在庫</button><button class="tab" data-tab="history">注文履歴</button></div>
+      <div id="orders-panel" class="tab-panel"></div><div id="products-panel" class="tab-panel hidden"></div><div id="history-panel" class="tab-panel hidden"></div>
+    </section>
+  </main>
+  <script src="js/store.js"></script><script src="js/admin.js"></script>
+</body>
+</html>
