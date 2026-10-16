@@ -3,6 +3,22 @@ import { DEFAULT_PRODUCTS, escapeHtml, getCart, saveCart, yen } from "./store.js
 
 const menuList = document.querySelector("#menu-list");
 const message = document.querySelector("#backend-message");
+const tableInfo = document.querySelector("#tableInfo");
+
+if (tableInfo) {
+  const params = new URLSearchParams(window.location.search);
+  const tableNumber = (params.get("table") || params.get("tableNumber") || "").trim();
+  const numberHeading = tableInfo.querySelector("#tableNumber");
+  const tableMessage = tableInfo.querySelector("#tableMessage");
+
+  if (tableNumber) {
+    numberHeading.textContent = `${tableNumber}番`;
+    tableMessage.textContent = "この卓からご注文いただけます。";
+  } else {
+    numberHeading.textContent = "卓番号を確認できません";
+    tableMessage.textContent = "卓番号付きのQRコードからアクセスしてください。";
+  }
+}
 
 if (menuList) {
   let products = DEFAULT_PRODUCTS;

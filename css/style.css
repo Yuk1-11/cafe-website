@@ -101,6 +101,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .order-status-link { display: block; margin-top: 13px; padding: 0; color: var(--green); background: none; border: 0; font-size: 11px; font-weight: 800; cursor: pointer; }
 .backend-message { margin: 0 0 18px; padding: 12px 15px; color: #735421; background: #fff1cb; border: 1px solid #e7c979; border-radius: 7px; font-size: 12px; }
 .backend-message[hidden], .order-status-link[hidden] { display: none; }
+.table-info { display: flex; align-items: baseline; gap: 10px; padding: 13px 17px; background: var(--paper); border-left: 4px solid var(--green); }
+.table-info p { margin: 0; color: var(--muted); font-size: 11px; }
+.table-info h2 { margin: 0; color: var(--green); font-size: 17px; }
 .hero-art {
   position: relative;
   display: grid;
