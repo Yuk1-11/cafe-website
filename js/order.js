@@ -1,5 +1,5 @@
 import { fetchOrderStatus, isFirebaseConfigured, placeOrder } from "./firebase.js";
-import { DEFAULT_PRODUCTS, getCart, saveCart, yen } from "./store.js";
+import { DEFAULT_PRODUCTS, escapeHtml, getCart, saveCart, yen } from "./store.js";
 
 const cartButton = document.querySelector("#cart-button");
 
@@ -23,7 +23,7 @@ if (cartButton) {
       if (!product) return "";
       total += product.price * line.quantity;
       count += line.quantity;
-      return `<div class="cart-line"><div><p>${product.emoji} ${product.name}</p><small>${yen(product.price)} × ${line.quantity}</small></div><div class="quantity"><button data-minus="${product.id}" aria-label="数量を減らす">−</button><b>${line.quantity}</b><button data-plus="${product.id}" aria-label="数量を増やす">＋</button></div><button class="remove-button" data-remove="${product.id}">削除</button></div>`;
+      return `<div class="cart-line"><div><p>${escapeHtml(product.emoji)} ${escapeHtml(product.name)}</p><small>${yen(product.price)} × ${line.quantity}</small></div><div class="quantity"><button data-minus="${escapeHtml(product.id)}" aria-label="数量を減らす">−</button><b>${line.quantity}</b><button data-plus="${escapeHtml(product.id)}" aria-label="数量を増やす">＋</button></div><button class="remove-button" data-remove="${escapeHtml(product.id)}">削除</button></div>`;
     }).join("") : "<p>カートは空です。メニューから商品を選んでください。</p>";
     document.querySelector("#cart-count").textContent = `${count}点`;
     document.querySelector("#cart-total").textContent = yen(total);

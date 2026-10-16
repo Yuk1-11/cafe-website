@@ -42,6 +42,8 @@ export const placeOrder = items => call("createOrder", { items });
 export const fetchOrderStatus = (orderNumber, trackingToken) => call("getOrderStatus", { orderNumber, trackingToken });
 export const changeOrderStatus = (orderId, status) => call("updateOrderStatus", { orderId, status });
 export const changeProductStock = (productId, stock) => call("updateProductStock", { productId, stock });
+export const saveProduct = product => call("saveProduct", product);
+export const setProductActive = (productId, active) => call("setProductActive", { productId, active });
 export const initializeCatalog = () => call("initializeCatalog", {});
 export const signInStaff = (email, password) => {
   if (!auth) throw new Error("Firebase Web設定が未入力です。");

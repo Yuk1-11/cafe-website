@@ -11,7 +11,7 @@
   <header class="site-header"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">●</span><span>ドットカフェ<small>DOT CAFE / STAFF</small></span></a><a class="header-link" href="index.html">お客さま画面 <span aria-hidden="true">↗</span></a></header>
   <main class="admin-page">
     <section id="login-panel" class="login-panel">
-      <p class="eyebrow">● STAFF ONLY</p><h1>おかえりなさい。</h1><p>スタッフコードを入力して、今日のカフェをひらきましょう。</p>
+      <p class="eyebrow">● STAFF ONLY</p><h1>おかえりなさい。</h1><p>スタッフアカウントでログインして、今日のカフェをひらきましょう。</p>
       <p id="login-error" class="form-error" role="alert"></p>
       <form id="login-form"><label>スタッフ用メールアドレス<input id="staff-email" type="email" required autocomplete="username" placeholder="staff@example.com"></label><label>パスワード<input id="staff-password" type="password" required autocomplete="current-password" placeholder="Firebase Authenticationのパスワード"></label><button class="primary-button" type="submit">管理画面へ <span aria-hidden="true">→</span></button></form>
       <p class="login-hint">Firebase Authenticationで作成し、スタッフ権限を設定したアカウントでログインしてください。</p>
@@ -20,7 +20,28 @@
       <div class="dashboard-heading"><div><p class="eyebrow">● DOT CAFE / DASHBOARD</p><h1>今日のお店のようす</h1></div><button id="logout-button" class="secondary-button" type="button">ログアウト</button></div>
       <div id="stats" class="stats"></div>
       <div class="admin-tabs"><button class="tab active" data-tab="orders">注文管理</button><button class="tab" data-tab="products">商品・在庫</button><button class="tab" data-tab="history">注文履歴</button></div>
-      <div id="orders-panel" class="tab-panel"></div><div id="products-panel" class="tab-panel hidden"></div><div id="history-panel" class="tab-panel hidden"></div>
+      <p id="tab-guide" class="tab-guide">届いた注文を確認し、準備が進んだら状況を更新します。変更はお客さまの注文状況にも反映されます。</p>
+      <div id="orders-panel" class="tab-panel"></div>
+      <div id="products-panel" class="tab-panel hidden">
+        <section class="product-editor">
+          <div class="product-editor-heading"><div><p class="eyebrow">MENU EDITOR</p><h2 id="product-editor-title">メニューを追加</h2></div><button id="cancel-product-edit" class="secondary-button hidden" type="button">編集をやめる</button></div>
+          <p class="product-editor-help">新メニューは下の項目を入力して追加します。登録済みの商品を直すときは、一覧の「編集」を押してから保存してください。</p>
+          <form id="product-form" class="product-form">
+            <label>商品名<input id="product-name" name="name" maxlength="40" required placeholder="例：ドットラテ"></label>
+            <label>説明<input id="product-description" name="description" maxlength="120" required placeholder="メニューの説明"></label>
+            <div class="product-form-row">
+              <label>価格（円）<input id="product-price" name="price" type="number" min="0" max="1000000" step="1" required></label>
+              <label>絵文字<input id="product-emoji" name="emoji" maxlength="8" required placeholder="☕"></label>
+              <label>在庫数<input id="product-stock" name="stock" type="number" min="0" max="10000" step="1" required value="0"></label>
+            </div>
+            <button id="save-product-button" class="primary-button" type="submit">メニューを追加</button>
+          </form>
+        </section>
+        <h2 class="product-list-heading">登録メニュー</h2>
+        <p class="product-editor-help">在庫を0にすると売り切れ表示になります。「販売停止」はメニューを一時的に非表示にします。商品と注文履歴は削除されません。</p>
+        <div id="product-list"></div>
+      </div>
+      <div id="history-panel" class="tab-panel hidden"></div>
       <p id="admin-message" class="form-error" role="status"></p>
     </section>
   </main>

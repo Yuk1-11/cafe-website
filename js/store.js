@@ -17,3 +17,10 @@ export const getCart = () => {
 
 export const saveCart = cart => localStorage.setItem("cafe-cart", JSON.stringify(cart));
 export const yen = value => `¥${value.toLocaleString("ja-JP")}`;
+export const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;"
+})[character]);

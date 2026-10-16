@@ -1,5 +1,5 @@
 import { isFirebaseConfigured, subscribeProducts } from "./firebase.js";
-import { DEFAULT_PRODUCTS, getCart, saveCart, yen } from "./store.js";
+import { DEFAULT_PRODUCTS, escapeHtml, getCart, saveCart, yen } from "./store.js";
 
 const menuList = document.querySelector("#menu-list");
 const message = document.querySelector("#backend-message");
@@ -10,7 +10,7 @@ if (menuList) {
   const renderMenu = () => {
     window.cafeProducts = products;
     menuList.innerHTML = products.filter(product => product.active !== false).map((product, index) =>
-      `<article class="menu-card menu-card-${index % 4}">${product.stock < 1 ? '<span class="sold-out">SOLD OUT</span>' : ""}<div class="menu-image"><span class="menu-image-tag">DOT CAFE / 0${index + 1}</span><span class="menu-emoji" aria-hidden="true">${product.emoji}</span><span class="menu-image-dot" aria-hidden="true">●</span></div><div class="menu-info"><p class="menu-category">${index === 0 ? "OUR SIGNATURE" : index === 1 ? "SEASONAL DRINK" : index === 2 ? "SWEET MOMENT" : "HOMEMADE"}</p><h3>${product.name}</h3><p class="menu-description">${product.description}</p><div class="price-row"><span class="price">${yen(product.price)}<small> (税込)</small></span><button class="add-button" data-add="${product.id}" ${product.stock < 1 ? "disabled" : ""}>${product.stock < 1 ? "売り切れ" : "＋ カートへ"}</button></div></div></article>`
+      `<article class="menu-card menu-card-${index % 4}">${product.stock < 1 ? '<span class="sold-out">SOLD OUT</span>' : ""}<div class="menu-image"><span class="menu-image-tag">DOT CAFE / 0${index + 1}</span><span class="menu-emoji" aria-hidden="true">${escapeHtml(product.emoji)}</span><span class="menu-image-dot" aria-hidden="true">●</span></div><div class="menu-info"><p class="menu-category">${index === 0 ? "OUR SIGNATURE" : index === 1 ? "SEASONAL DRINK" : index === 2 ? "SWEET MOMENT" : "HOMEMADE"}</p><h3>${escapeHtml(product.name)}</h3><p class="menu-description">${escapeHtml(product.description)}</p><div class="price-row"><span class="price">${yen(product.price)}<small> (税込)</small></span><button class="add-button" data-add="${escapeHtml(product.id)}" ${product.stock < 1 ? "disabled" : ""}>${product.stock < 1 ? "売り切れ" : "＋ カートへ"}</button></div></div></article>`
     ).join("");
   };
 

@@ -4,12 +4,14 @@ import {
   initializeCatalog,
   isFirebaseConfigured,
   observeAuth,
+  saveProduct,
+  setProductActive,
   signInStaff,
   signOutStaff,
   subscribeOrders,
   subscribeProducts
 } from "./firebase.js";
-import { yen } from "./store.js";
+import { escapeHtml, yen } from "./store.js";
 
 const loginPanel = document.querySelector("#login-panel");
 
@@ -21,6 +23,7 @@ if (loginPanel) {
   let products = [];
   let stopOrders = null;
   let stopProducts = null;
+  let editingProductId = null;
 
   const showError = error => {
     adminMessage.textContent = `データを更新できませんでした: ${error.message}`;
@@ -32,18 +35,18 @@ if (loginPanel) {
   };
   const renderOrders = () => {
     document.querySelector("#orders-panel").innerHTML = orders.length ? orders.map(order =>
-      `<article class="order-card"><div class="order-meta"><h3>注文 #${order.orderNumber}</h3><time>${new Date(order.createdAt).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}</time></div><p class="order-items">${order.items.map(item => `${item.name} × ${item.quantity}`).join(" / ")}</p><div class="order-meta"><strong>${yen(order.total)}</strong><select class="status-select" data-status="${order.id}">${["受付済み", "調理中", "受け渡し待ち", "受け渡し済み"].map(status => `<option ${status === order.status ? "selected" : ""}>${status}</option>`).join("")}</select></div></article>`
+      `<article class="order-card"><div class="order-meta"><h3>注文 #${escapeHtml(order.orderNumber)}</h3><time>${new Date(order.createdAt).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}</time></div><p class="order-items">${order.items.map(item => `${escapeHtml(item.name)} × ${item.quantity}`).join(" / ")}</p><div class="order-meta"><strong>${yen(order.total)}</strong><label class="sr-only" for="status-${escapeHtml(order.id)}">注文 #${escapeHtml(order.orderNumber)} の状況</label><select class="status-select" id="status-${escapeHtml(order.id)}" data-status="${escapeHtml(order.id)}">${["受付済み", "調理中", "受け渡し待ち", "受け渡し済み"].map(status => `<option ${status === order.status ? "selected" : ""}>${status}</option>`).join("")}</select></div></article>`
     ).join("") : "<p>まだ注文はありません。</p>";
   };
   const renderProducts = () => {
-    document.querySelector("#products-panel").innerHTML = products.map(product =>
-      `<div class="product-row"><div><strong>${product.emoji} ${product.name}</strong><small>${yen(product.price)}</small></div><label>在庫 <input class="stock-input" type="number" min="0" step="1" value="${product.stock}" data-stock="${product.id}"></label><button class="stock-toggle" data-toggle="${product.id}">${product.stock ? "売り切れにする" : "販売を再開"}</button></div>`
-    ).join("");
+    document.querySelector("#product-list").innerHTML = products.length ? products.map(product =>
+      `<article class="product-row ${product.active === false ? "product-inactive" : ""}"><div class="product-summary"><strong>${escapeHtml(product.emoji)} ${escapeHtml(product.name)}</strong><small>${escapeHtml(product.description)}</small><small>${yen(product.price)}${product.active === false ? " ・販売停止中" : ""}</small></div><label>在庫 <input class="stock-input" type="number" min="0" max="10000" step="1" value="${product.stock}" data-stock="${escapeHtml(product.id)}"></label><div class="product-actions"><button class="secondary-button" data-edit="${escapeHtml(product.id)}" type="button">編集</button><button class="stock-toggle" data-toggle="${escapeHtml(product.id)}" type="button">${product.active === false ? "販売を再開" : "販売停止"}</button></div></article>`
+    ).join("") : "<p>メニューがありません。上のフォームから追加してください。</p>";
   };
   const renderHistory = () => {
     const history = orders.filter(order => order.status === "受け渡し済み");
     document.querySelector("#history-panel").innerHTML = history.length ? history.map(order =>
-      `<article class="order-card"><div class="order-meta"><h3>注文 #${order.orderNumber}</h3><strong>${yen(order.total)}</strong></div><p class="order-items">${order.items.map(item => `${item.name} × ${item.quantity}`).join(" / ")}</p></article>`
+      `<article class="order-card"><div class="order-meta"><h3>注文 #${escapeHtml(order.orderNumber)}</h3><strong>${yen(order.total)}</strong></div><p class="order-items">${order.items.map(item => `${escapeHtml(item.name)} × ${item.quantity}`).join(" / ")}</p></article>`
     ).join("") : "<p>受け渡し済みの注文はありません。</p>";
   };
   const renderAll = () => {
@@ -52,6 +55,40 @@ if (loginPanel) {
     renderProducts();
     renderHistory();
   };
+  const resetProductForm = () => {
+    editingProductId = null;
+    document.querySelector("#product-form").reset();
+    document.querySelector("#product-stock").value = "0";
+    document.querySelector("#product-editor-title").textContent = "メニューを追加";
+    document.querySelector("#save-product-button").textContent = "メニューを追加";
+    document.querySelector("#cancel-product-edit").classList.add("hidden");
+  };
+
+  document.querySelector("#product-form").addEventListener("submit", async event => {
+    event.preventDefault();
+    const saveButton = document.querySelector("#save-product-button");
+    saveButton.disabled = true;
+    adminMessage.textContent = "";
+    const product = {
+      name: document.querySelector("#product-name").value.trim(),
+      description: document.querySelector("#product-description").value.trim(),
+      price: Number(document.querySelector("#product-price").value),
+      emoji: document.querySelector("#product-emoji").value.trim(),
+      stock: Number(document.querySelector("#product-stock").value)
+    };
+    const wasEditing = Boolean(editingProductId);
+    if (editingProductId) product.productId = editingProductId;
+    try {
+      await saveProduct(product);
+      resetProductForm();
+      adminMessage.textContent = wasEditing ? "メニューを更新しました。" : "メニューを追加しました。";
+    } catch (error) {
+      showError(error);
+    } finally {
+      saveButton.disabled = false;
+    }
+  });
+  document.querySelector("#cancel-product-edit").addEventListener("click", resetProductForm);
 
   document.querySelector("#login-form").addEventListener("submit", async event => {
     event.preventDefault();
@@ -84,11 +121,27 @@ if (loginPanel) {
     if (productId) {
       const product = products.find(item => item.id === productId);
       try {
-        await changeProductStock(productId, product.stock ? 0 : 10);
+        await setProductActive(productId, product.active === false);
         adminMessage.textContent = "";
       } catch (error) {
         showError(error);
       }
+    }
+    const editProductId = event.target.dataset.edit;
+    if (editProductId) {
+      const product = products.find(item => item.id === editProductId);
+      if (!product) return;
+      editingProductId = product.id;
+      document.querySelector("#product-name").value = product.name;
+      document.querySelector("#product-description").value = product.description;
+      document.querySelector("#product-price").value = product.price;
+      document.querySelector("#product-emoji").value = product.emoji;
+      document.querySelector("#product-stock").value = product.stock;
+      document.querySelector("#product-editor-title").textContent = "メニューを編集";
+      document.querySelector("#save-product-button").textContent = "変更を保存";
+      document.querySelector("#cancel-product-edit").classList.remove("hidden");
+      document.querySelector("#products-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+      document.querySelector("#product-name").focus();
     }
     const tab = event.target.closest(".tab");
     if (!tab) return;
@@ -96,6 +149,11 @@ if (loginPanel) {
     document.querySelectorAll(".tab-panel").forEach(item => item.classList.add("hidden"));
     tab.classList.add("active");
     document.querySelector(`#${tab.dataset.tab}-panel`).classList.remove("hidden");
+    document.querySelector("#tab-guide").textContent = {
+      orders: "届いた注文を確認し、準備が進んだら状況を更新します。変更はお客さまの注文状況にも反映されます。",
+      products: "メニューの追加・編集、在庫数の変更、販売停止を行います。変更はお客さま画面に反映されます。",
+      history: "「受け渡し済み」にした注文を確認できます。"
+    }[tab.dataset.tab];
   });
 
   if (!isFirebaseConfigured) {
