@@ -132,19 +132,31 @@ cultural-festival-cafe/
 - クライアントから送信された価格や合計金額をそのまま信用しない
 - Firebaseの秘密鍵や認証情報をGitHubに公開しない
 
-## 🚀 開発予定
+## TODOリスト：公開までにやること
 
-- [x] GitHubリポジトリの作成
-- [x] 基本的な画面デザインの作成
-- [x] メニュー表示機能の実装
-- [ ] Firebaseプロジェクトの設定
-- [x] 商品データと在庫管理の実装（Cloud FirestoreとCloud Functions）
-- [x] 注文機能の実装
-- [x] 店員用管理画面の実装
-- [x] 認証・アクセス制御の実装（Custom ClaimsとFirestore Security Rules）
-- [x] テストと動作確認（JavaScript構文・ブラウザ画面）
-- [ ] Firebase Hostingで公開
-- [ ] 文化祭本番に向けた負荷・運用テスト
+画面とFirebase連携のコードは実装済みですが、Firebaseプロジェクトがまだないため、実際の注文受付・公開はこれからです。上から順に進めてください。
+
+### 実装済み
+
+- [x] お客さま向けメニュー、カート、注文画面を作る
+- [x] スタッフ画面で注文状況・在庫を管理する
+- [x] スタッフ画面からメニューを追加・編集・販売停止する
+- [x] Firebase Authentication・Firestore・Cloud Functionsの接続処理を用意する
+- [x] 注文時の在庫確認、Firestoreルール、Hosting設定を用意する
+- [x] GitHubへソースコードを保存する
+
+### これから行うこと
+
+1. [ ] Firebase Consoleでプロジェクトを作成し、Webアプリを登録する。
+2. [ ] Webアプリの設定値を [`js/firebase-config.js`](./js/firebase-config.js) に記入する。
+3. [ ] Firebase Authenticationでメール/パスワード認証を有効にし、スタッフ用ユーザーを作る。
+4. [ ] Firestore Databaseを作成する。
+5. [ ] Cloud Functionsを使うためのBlaze料金プランを確認する。**従量課金のため、料金と支払い設定を確認・承認できる人が判断する。**
+6. [ ] READMEの「スタッフ権限を設定する」に従い、スタッフアカウントに権限を付ける。
+7. [ ] 「Hostingとバックエンドをデプロイする」のコマンドを実行し、Hosting・Functions・Firestoreルールを公開する。
+8. [ ] スタッフ画面へ初回ログインし、初期メニューが表示されることを確認する。
+9. [ ] スマートフォンからテスト注文し、注文番号・在庫の減少・スタッフ画面への反映・注文状況の更新を確認する。
+10. [ ] 公開前に売り切れ時の注文制限、同時注文、スマートフォン表示、料金アラートなどを確認し、本番運用テストを行う。
 
 ## 📝 備考
 
