@@ -98,6 +98,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .hero-cta:hover { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
 .hero-note { margin: 18px 0 0; color: var(--muted); font-size: 10px; }
 .hero-note span { color: var(--green); margin-right: 5px; }
+.order-status-link { display: block; margin-top: 13px; padding: 0; color: var(--green); background: none; border: 0; font-size: 11px; font-weight: 800; cursor: pointer; }
+.backend-message { margin: 0 0 18px; padding: 12px 15px; color: #735421; background: #fff1cb; border: 1px solid #e7c979; border-radius: 7px; font-size: 12px; }
+.backend-message[hidden], .order-status-link[hidden] { display: none; }
 .hero-art {
   position: relative;
   display: grid;
@@ -157,6 +160,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .add-button { padding: 7px 9px; font-size: 10px; white-space: nowrap; }
 .add-button:hover, .primary-button:hover { background: var(--accent-dark); }
 .add-button:disabled { color: #6a5d54; background: #e6ddd1; box-shadow: none; cursor: not-allowed; }
+.primary-button:disabled { color: #6a5d54; background: #e6ddd1; box-shadow: none; cursor: not-allowed; }
 .sold-out { position: absolute; top: 11px; right: 10px; z-index: 2; padding: 4px 8px; color: white; background: var(--ink); border-radius: 4px; font-size: 8px; font-weight: 900; letter-spacing: .08em; }
 
 .order-guide { display: flex; align-items: center; gap: 14px; max-width: 700px; margin: 44px auto 0; padding: 17px 22px; background: var(--paper); border: 1px dashed #d8ad8a; border-radius: 10px; }

@@ -20,6 +20,7 @@
         <h1 id="hero-title">ひとくちごとに、<br><span>しあわせ</span>ドット。</h1>
         <p class="hero-description">小さなドットに、ときめきをひとつぶ。<br>文化祭だけのメニューをお楽しみください。</p>
         <a class="hero-cta" href="#menu">メニューを見にいく <span aria-hidden="true">↓</span></a>
+        <button id="resume-order" class="order-status-link" type="button" hidden>ご注文の状況を確認する →</button>
         <p class="hero-note"><span aria-hidden="true">✳</span> スマホで注文、できたら番号でお呼びします</p>
       </div>
       <div class="hero-art" aria-label="ドットカフェのコーヒーとお菓子" role="img">
@@ -33,6 +34,7 @@
     </section>
     <section id="menu" class="menu-section" aria-labelledby="menu-title">
       <div class="section-heading"><div><p class="eyebrow">A LITTLE TREAT FOR YOU</p><h2 id="menu-title">カフェメニュー <span class="heading-dot">●</span></h2><p class="section-description">お気に入りを見つけて、カートに入れてね。</p></div><span id="cart-count" class="cart-count">0点</span></div>
+      <p id="backend-message" class="backend-message" role="status" hidden></p>
       <div id="menu-list" class="menu-grid"></div>
     </section>
     <section class="order-guide" aria-label="ご注文の流れ"><span class="guide-icon">01</span><p><strong>スマホで注文</strong><small>メニューを選んで注文</small></p><span class="guide-arrow" aria-hidden="true">→</span><span class="guide-icon">02</span><p><strong>番号をチェック</strong><small>できあがったらお呼びします</small></p><span class="guide-dot" aria-hidden="true">●</span></section>
@@ -40,9 +42,8 @@
   <footer class="site-footer"><a class="footer-brand" href="index.html">● DOT CAFE</a><span>文化祭の思い出に、甘いひと休み。</span><span>MADE FOR SCHOOL FESTIVAL</span></footer>
   <button id="cart-button" class="cart-button" type="button" aria-label="カートを開く"><span class="cart-icon" aria-hidden="true">＋</span><span>カートを見る</span><strong id="cart-total">¥0</strong></button>
   <dialog id="cart-dialog" class="modal"><div class="modal-content"><div class="modal-header"><div><p class="eyebrow">YOUR ORDER</p><h2>カートの中身</h2></div><button class="icon-button" data-close="cart-dialog" aria-label="閉じる">×</button></div><div id="cart-items"></div><div class="total-row"><span>お会計</span><strong id="dialog-total">¥0</strong></div><button id="checkout-button" class="primary-button" type="button">この内容で注文する <span aria-hidden="true">→</span></button></div></dialog>
-  <dialog id="status-dialog" class="modal"><div class="modal-content status-content"><button class="icon-button" data-close="status-dialog" aria-label="閉じる">×</button><div id="status-content"></div></div></dialog>
-  <script src="js/store.js"></script>
-  <script src="js/menu.js"></script>
-  <script src="js/order.js"></script>
+  <dialog id="status-dialog" class="modal"><div class="modal-content status-content"><button class="icon-button" data-close="status-dialog" aria-label="閉じる">×</button><div id="status-content"></div><button id="check-order-status" class="secondary-button" type="button" hidden>注文状況を確認する</button><p id="order-status-message" class="form-error" role="status"></p></div></dialog>
+  <script type="module" src="js/menu.js"></script>
+  <script type="module" src="js/order.js"></script>
 </body>
 </html>

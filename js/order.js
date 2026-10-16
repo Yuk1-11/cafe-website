@@ -1,10 +1,121 @@
-const cartButton=document.querySelector("#cart-button");
-if(cartButton){
-  const cartDialog=document.querySelector("#cart-dialog"),statusDialog=document.querySelector("#status-dialog");
-  const cartItems=document.querySelector("#cart-items");
-  const renderCart=()=>{const products=getProducts(),cart=getData("cafe-cart",[]);let total=0,count=0;cartItems.innerHTML=cart.length?cart.map(line=>{const product=products.find(item=>item.id===line.id);if(!product)return"";total+=product.price*line.quantity;count+=line.quantity;return`<div class="cart-line"><div><p>${product.emoji} ${product.name}</p><small>${yen(product.price)} × ${line.quantity}</small></div><div class="quantity"><button data-minus="${product.id}" aria-label="数量を減らす">−</button><b>${line.quantity}</b><button data-plus="${product.id}" aria-label="数量を増やす">＋</button></div><button class="remove-button" data-remove="${product.id}">削除</button></div>`}).join(""):"<p class=\"empty-state\">カートは空です。メニューから商品を選んでください。</p>";document.querySelector("#cart-count").textContent=`${count}点`;document.querySelector("#cart-total").textContent=yen(total);document.querySelector("#dialog-total").textContent=yen(total);document.querySelector("#checkout-button").disabled=!cart.length};
-  renderCart();window.addEventListener("cart-updated",renderCart);cartButton.addEventListener("click",()=>{renderCart();cartDialog.showModal()});
-  cartItems.addEventListener("click",event=>{const target=event.target,cart=getData("cafe-cart",[]),id=target.dataset.plus||target.dataset.minus||target.dataset.remove,line=cart.find(item=>item.id===id);if(!line)return;if(target.dataset.plus)line.quantity++;if(target.dataset.minus)line.quantity--;if(target.dataset.remove||line.quantity<1)cart.splice(cart.indexOf(line),1);const product=getProducts().find(item=>item.id===id);if(product&&line&&line.quantity>product.stock)line.quantity=product.stock;saveData("cafe-cart",cart);renderCart()});
-  document.querySelector("#checkout-button").addEventListener("click",()=>{const cart=getData("cafe-cart",[]),products=getProducts();if(!cart.length)return;for(const line of cart){const product=products.find(item=>item.id===line.id);if(!product||product.stock<line.quantity){alert("在庫が不足している商品があります。");renderCart();return}}const total=cart.reduce((sum,line)=>sum+products.find(item=>item.id===line.id).price*line.quantity,0),orders=getOrders(),number=`${String(orders.length+1).padStart(3,"0")}`;const order={id:Date.now(),number,items:cart.map(line=>({...line,name:products.find(item=>item.id===line.id).name,price:products.find(item=>item.id===line.id).price})),total,status:"受付済み",createdAt:new Date().toISOString()};cart.forEach(line=>{const product=products.find(item=>item.id===line.id);product.stock-=line.quantity});saveData("cafe-products",products);saveData("cafe-orders",[order,...orders]);saveData("cafe-cart",[]);cartDialog.close();document.querySelector("#status-content").innerHTML=`<p class="eyebrow">ORDER RECEIVED</p><h2>ご注文ありがとうございます</h2><div class="order-number">#${number}</div><p>この番号が呼ばれるまで、席でお待ちください。</p><button class="primary-button" data-close="status-dialog">閉じる</button>`;statusDialog.showModal();renderCart()});
-  document.addEventListener("click",event=>{const close=event.target.closest("[data-close]");if(close)document.querySelector(`#${close.dataset.close}`).close()});
+import { fetchOrderStatus, isFirebaseConfigured, placeOrder } from "./firebase.js";
+import { DEFAULT_PRODUCTS, getCart, saveCart, yen } from "./store.js";
+
+const cartButton = document.querySelector("#cart-button");
+
+if (cartButton) {
+  const cartDialog = document.querySelector("#cart-dialog");
+  const statusDialog = document.querySelector("#status-dialog");
+  const cartItems = document.querySelector("#cart-items");
+  const checkoutButton = document.querySelector("#checkout-button");
+  const statusMessage = document.querySelector("#order-status-message");
+  const checkStatusButton = document.querySelector("#check-order-status");
+  const resumeOrderButton = document.querySelector("#resume-order");
+  let products = window.cafeProducts || DEFAULT_PRODUCTS;
+
+  const renderCart = () => {
+    products = window.cafeProducts || products;
+    const cart = getCart();
+    let total = 0;
+    let count = 0;
+    cartItems.innerHTML = cart.length ? cart.map(line => {
+      const product = products.find(item => item.id === line.id);
+      if (!product) return "";
+      total += product.price * line.quantity;
+      count += line.quantity;
+      return `<div class="cart-line"><div><p>${product.emoji} ${product.name}</p><small>${yen(product.price)} × ${line.quantity}</small></div><div class="quantity"><button data-minus="${product.id}" aria-label="数量を減らす">−</button><b>${line.quantity}</b><button data-plus="${product.id}" aria-label="数量を増やす">＋</button></div><button class="remove-button" data-remove="${product.id}">削除</button></div>`;
+    }).join("") : "<p>カートは空です。メニューから商品を選んでください。</p>";
+    document.querySelector("#cart-count").textContent = `${count}点`;
+    document.querySelector("#cart-total").textContent = yen(total);
+    document.querySelector("#dialog-total").textContent = yen(total);
+    checkoutButton.disabled = !cart.length || !isFirebaseConfigured;
+  };
+
+  renderCart();
+  window.addEventListener("cart-updated", renderCart);
+  cartButton.addEventListener("click", () => {
+    renderCart();
+    cartDialog.showModal();
+  });
+  cartItems.addEventListener("click", event => {
+    const target = event.target;
+    const id = target.dataset.plus || target.dataset.minus || target.dataset.remove;
+    const cart = getCart();
+    const line = cart.find(item => item.id === id);
+    if (!line) return;
+    if (target.dataset.plus) line.quantity++;
+    if (target.dataset.minus) line.quantity--;
+    if (target.dataset.remove || line.quantity < 1) cart.splice(cart.indexOf(line), 1);
+    saveCart(cart);
+    renderCart();
+  });
+
+  checkoutButton.addEventListener("click", async () => {
+    const cart = getCart();
+    if (!cart.length || !isFirebaseConfigured) return;
+    checkoutButton.disabled = true;
+    statusMessage.textContent = "";
+    try {
+      const result = await placeOrder(cart.map(({ id, quantity }) => ({ id, quantity })));
+      const order = { orderNumber: result.orderNumber, trackingToken: result.trackingToken };
+      sessionStorage.setItem("cafe-active-order", JSON.stringify(order));
+      saveCart([]);
+      cartDialog.close();
+      document.querySelector("#status-content").innerHTML = `<p class="eyebrow">ORDER RECEIVED</p><h2>ご注文ありがとうございます</h2><div class="order-number">#${order.orderNumber}</div><p>この番号が呼ばれるまで、席でお待ちください。</p>`;
+      statusMessage.textContent = "";
+      checkStatusButton.hidden = false;
+      resumeOrderButton.hidden = false;
+      statusDialog.showModal();
+      renderCart();
+      await showOrderStatus(order);
+    } catch (error) {
+      statusMessage.textContent = `注文できませんでした: ${error.message}`;
+      checkoutButton.disabled = false;
+    }
+  });
+
+  const showOrderStatus = async order => {
+    statusMessage.textContent = "注文状況を確認しています…";
+    try {
+      const result = await fetchOrderStatus(order.orderNumber, order.trackingToken);
+      statusMessage.textContent = `現在の状況: ${result.status}`;
+    } catch (error) {
+      statusMessage.textContent = `状況を確認できませんでした: ${error.message}`;
+    }
+  };
+
+  checkStatusButton.addEventListener("click", () => {
+    try {
+      const order = JSON.parse(sessionStorage.getItem("cafe-active-order") || "null");
+      if (order) showOrderStatus(order);
+      else statusMessage.textContent = "この端末で確認できる注文はありません。";
+    } catch (error) {
+      console.error("保存された注文を読み込めませんでした。", error);
+      statusMessage.textContent = "保存された注文を読み込めませんでした。";
+    }
+  });
+
+  try {
+    resumeOrderButton.hidden = !sessionStorage.getItem("cafe-active-order");
+  } catch (error) {
+    console.error("注文状況の保存状態を読み込めませんでした。", error);
+  }
+  resumeOrderButton.addEventListener("click", () => {
+    try {
+      const order = JSON.parse(sessionStorage.getItem("cafe-active-order") || "null");
+      if (!order) return;
+      document.querySelector("#status-content").innerHTML = `<p class="eyebrow">YOUR ORDER</p><h2>ご注文状況</h2><div class="order-number">#${order.orderNumber}</div>`;
+      checkStatusButton.hidden = false;
+      statusDialog.showModal();
+      showOrderStatus(order);
+    } catch (error) {
+      console.error("注文状況を読み込めませんでした。", error);
+      statusMessage.textContent = "注文状況を読み込めませんでした。";
+    }
+  });
+
+  document.addEventListener("click", event => {
+    const close = event.target.closest("[data-close]");
+    if (close) document.querySelector(`#${close.dataset.close}`).close();
+  });
 }

@@ -12,15 +12,18 @@
   <main class="admin-page">
     <section id="login-panel" class="login-panel">
       <p class="eyebrow">● STAFF ONLY</p><h1>おかえりなさい。</h1><p>スタッフコードを入力して、今日のカフェをひらきましょう。</p>
-      <form id="login-form"><label>スタッフコード<input id="staff-code" type="password" required autocomplete="off" placeholder="スタッフコード"></label><button class="primary-button" type="submit">管理画面へ <span aria-hidden="true">→</span></button><p id="login-error" class="form-error" role="alert"></p></form><p class="login-hint">デモ用スタッフコード：<strong>cafe2025</strong></p>
+      <p id="login-error" class="form-error" role="alert"></p>
+      <form id="login-form"><label>スタッフ用メールアドレス<input id="staff-email" type="email" required autocomplete="username" placeholder="staff@example.com"></label><label>パスワード<input id="staff-password" type="password" required autocomplete="current-password" placeholder="Firebase Authenticationのパスワード"></label><button class="primary-button" type="submit">管理画面へ <span aria-hidden="true">→</span></button></form>
+      <p class="login-hint">Firebase Authenticationで作成し、スタッフ権限を設定したアカウントでログインしてください。</p>
     </section>
     <section id="dashboard" class="dashboard hidden">
       <div class="dashboard-heading"><div><p class="eyebrow">● DOT CAFE / DASHBOARD</p><h1>今日のお店のようす</h1></div><button id="logout-button" class="secondary-button" type="button">ログアウト</button></div>
       <div id="stats" class="stats"></div>
       <div class="admin-tabs"><button class="tab active" data-tab="orders">注文管理</button><button class="tab" data-tab="products">商品・在庫</button><button class="tab" data-tab="history">注文履歴</button></div>
       <div id="orders-panel" class="tab-panel"></div><div id="products-panel" class="tab-panel hidden"></div><div id="history-panel" class="tab-panel hidden"></div>
+      <p id="admin-message" class="form-error" role="status"></p>
     </section>
   </main>
-  <script src="js/store.js"></script><script src="js/admin.js"></script>
+  <script type="module" src="js/admin.js"></script>
 </body>
 </html>

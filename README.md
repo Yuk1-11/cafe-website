@@ -23,7 +23,7 @@
 - [x] 売り切れ商品の表示と注文制限
 
 ### 店員向け管理機能
-- [x] 管理画面へのログイン（デモコードによる仮認証）
+- [x] 管理画面へのログイン（Firebase Authenticationとスタッフ権限）
 - [x] 注文一覧の表示
 - [x] 注文内容・数量・合計金額の確認
 - [x] 注文状況の更新
@@ -89,10 +89,10 @@ cultural-festival-cafe/
 - [x] 基本的な画面デザインの作成
 - [x] メニュー表示機能の実装
 - [ ] Firebaseプロジェクトの設定
-- [x] 商品データと在庫管理の実装（ブラウザのlocalStorageによるデモ）
+- [x] 商品データと在庫管理の実装（Cloud FirestoreとCloud Functions）
 - [x] 注文機能の実装
 - [x] 店員用管理画面の実装
-- [ ] 認証・アクセス制御の設定
+- [x] 認証・アクセス制御の実装（Custom ClaimsとFirestore Security Rules）
 - [x] テストと動作確認（JavaScript構文・ブラウザ画面）
 - [ ] Firebase Hostingで公開
 - [ ] 文化祭本番に向けた負荷・運用テスト
@@ -105,10 +105,53 @@ cultural-festival-cafe/
 
 ## 現在の実装について
 
-現在は外部サービスの設定なしで動作を確認できるプロトタイプです。商品・在庫・注文はブラウザのlocalStorageに保存され、店員画面のデモコードは `cafe2025` です。
+Firebase連携コードとデプロイ設定を用意しています。実際の注文受付を有効にするには、`js/firebase-config.js` にプロジェクトのWeb設定を入力し、Firebaseの各サービスを有効化してデプロイしてください。Firebase設定がない場合はメニューのプレビューだけが表示されます。
 
-本番公開前には、localStorageの処理をCloud Firestoreへ置き換え、Firebase Authentication・Cloud Functions・Firestore Security Rulesを設定してください。デモ用コードは本番の認証情報として使用しないでください。
+注文カートと注文状況確認用トークンはブラウザーのストレージに一時保存し、商品・在庫・注文はCloud Firestoreで管理します。
 
 ## ドットカフェのデザイン
 
-水玉模様とレトロポップな色使いをテーマに、文化祭で立ち寄りたくなるカフェの注文ページにしています。メニューはドットラテ、しゅわしゅわソーダ、水玉クリームケーキ、ドットクッキーです。以前のメニューがブラウザに保存されている場合も、在庫数を保ったまま新しいメニュー名に切り替わります。
+水玉模様とレトロポップな色使いをテーマに、文化祭で立ち寄りたくなるカフェの注文ページにしています。メニューはドットラテ、しゅわしゅわソーダ、水玉クリームケーキ、ドットクッキーです。
+
+## Firebaseの設定と公開
+
+このサイトはFirebase Hosting、Cloud Firestore、Firebase Authentication、Callable Cloud Functionsを使います。Firebaseプロジェクトごとに必要な設定を行ってからデプロイしてください。
+
+### 1. FirebaseプロジェクトとWebアプリを設定する
+
+1. Firebase Consoleでプロジェクトを作成し、Webアプリを追加します。
+2. Webアプリの設定値を `js/firebase-config.js` にコピーします。Firebase Web APIキーはブラウザーに配布される公開設定値です。Admin SDKの秘密鍵はここやGitHubに置かないでください。
+3. Authenticationでメール/パスワードのログインを有効にし、スタッフのユーザーを作成します。
+4. Firestore Databaseを作成します。最初の商品カタログは、スタッフが管理画面へ初回ログインしたときに登録されます。
+5. Cloud FunctionsをデプロイするにはFirebaseプロジェクトをBlaze料金プランにする必要があります。料金・無料枠を確認してから有効にしてください。
+
+### 2. スタッフ権限を設定する
+
+管理画面にログインさせる前に、スタッフアカウントへ `staff: true` のCustom Claimを付けます。Google Cloud SDKをインストールし、Firebaseプロジェクトに対するFirebase Authentication管理権限を持つGoogleアカウントで次を実行します。
+
+```powershell
+gcloud auth application-default login
+node .\functions\scripts\set-staff.js <PROJECT_ID> <スタッフのメールアドレス> grant
+```
+
+権限を外す場合は最後の `grant` を `revoke` にします。Claimを変更した後はスタッフがいったんログアウトして、もう一度ログインしてください。ブラウザー側だけのデモコードによる認証は使用しません。
+
+### 3. Hostingとバックエンドをデプロイする
+
+Node.js 22とFirebase CLIを用意してから、プロジェクトのルートで実行します。
+
+```powershell
+npm install --prefix functions
+npx firebase-tools login
+npx firebase-tools deploy --project <PROJECT_ID>
+```
+
+デプロイにはHostingサイト、Firestore Security Rules、Cloud Functionsが含まれます。公開URLはFirebase ConsoleのHosting画面で確認できます。`<PROJECT_ID>` は実際のFirebaseプロジェクトIDに置き換えてください。
+
+### データの保護と動作
+
+- 商品メニューはFirestoreからリアルタイムに読み込みます。
+- 注文確定はCloud Functionsが価格と在庫をFirestoreトランザクションで再検証してから注文を保存します。ブラウザーから送られた価格・合計金額は利用しません。
+- お客さまの注文状況確認には注文番号に加え、注文時に発行する推測困難な確認トークンを使います。
+- 注文の閲覧、注文状況・在庫の変更はスタッフCustom Claimを持つアカウントに限定します。Firestoreクライアントからの直接書き込みはSecurity Rulesで拒否されます。
+- Firebase設定が未入力の間はメニューのプレビューのみ表示し、注文受付とスタッフログインは無効です。
