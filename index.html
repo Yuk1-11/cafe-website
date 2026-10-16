@@ -3,28 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="文化祭カフェのモバイルオーダー">
-  <title>よりみちカフェ | モバイルオーダー</title>
+  <meta name="description" content="ドットカフェの文化祭限定メニューをスマホからかんたん注文。">
+  <meta name="theme-color" content="#fff8e9">
+  <title>ドットカフェ | 文化祭のちいさな喫茶店</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="index.html"><span class="brand-mark">☕</span><span>よりみちカフェ<small>文化祭限定</small></span></a>
-    <a class="header-link" href="admin.html">店員用画面 →</a>
+    <a class="brand" href="index.html" aria-label="ドットカフェ ホーム"><span class="brand-mark" aria-hidden="true">●</span><span>ドットカフェ<small>DOT CAFE / SCHOOL FESTIVAL</small></span></a>
+    <a class="header-link" href="admin.html">スタッフの方はこちら <span aria-hidden="true">↗</span></a>
   </header>
   <main class="customer-page">
-    <section class="hero">
-      <p class="eyebrow">CULTURAL FESTIVAL 2025</p>
-      <h1>ひと息ついて、<br><em>よりみち</em>しよう。</h1>
-      <p>スマホからかんたん注文。できあがったら番号でお呼びします。</p>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="eyebrow-dot"></span> SCHOOL FESTIVAL CAFE</p>
+        <h1 id="hero-title">ひとくちごとに、<br><span>しあわせ</span>ドット。</h1>
+        <p class="hero-description">小さなドットに、ときめきをひとつぶ。<br>文化祭だけのメニューをお楽しみください。</p>
+        <a class="hero-cta" href="#menu">メニューを見にいく <span aria-hidden="true">↓</span></a>
+        <p class="hero-note"><span aria-hidden="true">✳</span> スマホで注文、できたら番号でお呼びします</p>
+      </div>
+      <div class="hero-art" aria-label="ドットカフェのコーヒーとお菓子" role="img">
+        <span class="art-spark spark-one" aria-hidden="true">✳</span>
+        <span class="art-spark spark-two" aria-hidden="true">✳</span>
+        <span class="art-label">TODAY'S<br>HAPPINESS</span>
+        <div class="art-plate"><div class="art-cup"><span>☕</span></div><span class="art-cookie">●</span></div>
+        <span class="art-dot dot-one"></span><span class="art-dot dot-two"></span><span class="art-dot dot-three"></span>
+        <span class="art-caption">made with little dots & love</span>
+      </div>
     </section>
-    <section class="menu-section" aria-labelledby="menu-title">
-      <div class="section-heading"><div><p class="eyebrow">MENU</p><h2 id="menu-title">本日のメニュー</h2></div><span id="cart-count" class="cart-count">0点</span></div>
+    <section id="menu" class="menu-section" aria-labelledby="menu-title">
+      <div class="section-heading"><div><p class="eyebrow">A LITTLE TREAT FOR YOU</p><h2 id="menu-title">カフェメニュー <span class="heading-dot">●</span></h2><p class="section-description">お気に入りを見つけて、カートに入れてね。</p></div><span id="cart-count" class="cart-count">0点</span></div>
       <div id="menu-list" class="menu-grid"></div>
     </section>
+    <section class="order-guide" aria-label="ご注文の流れ"><span class="guide-icon">01</span><p><strong>スマホで注文</strong><small>メニューを選んで注文</small></p><span class="guide-arrow" aria-hidden="true">→</span><span class="guide-icon">02</span><p><strong>番号をチェック</strong><small>できあがったらお呼びします</small></p><span class="guide-dot" aria-hidden="true">●</span></section>
   </main>
-  <button id="cart-button" class="cart-button" type="button" aria-label="カートを開く"><span>🛒</span><span>カートを見る</span><strong id="cart-total">¥0</strong></button>
-  <dialog id="cart-dialog" class="modal"><div class="modal-content"><div class="modal-header"><h2>注文内容</h2><button class="icon-button" data-close="cart-dialog" aria-label="閉じる">×</button></div><div id="cart-items"></div><div class="total-row"><span>合計</span><strong id="dialog-total">¥0</strong></div><button id="checkout-button" class="primary-button" type="button">注文を確定する</button></div></dialog>
+  <footer class="site-footer"><a class="footer-brand" href="index.html">● DOT CAFE</a><span>文化祭の思い出に、甘いひと休み。</span><span>MADE FOR SCHOOL FESTIVAL</span></footer>
+  <button id="cart-button" class="cart-button" type="button" aria-label="カートを開く"><span class="cart-icon" aria-hidden="true">＋</span><span>カートを見る</span><strong id="cart-total">¥0</strong></button>
+  <dialog id="cart-dialog" class="modal"><div class="modal-content"><div class="modal-header"><div><p class="eyebrow">YOUR ORDER</p><h2>カートの中身</h2></div><button class="icon-button" data-close="cart-dialog" aria-label="閉じる">×</button></div><div id="cart-items"></div><div class="total-row"><span>お会計</span><strong id="dialog-total">¥0</strong></div><button id="checkout-button" class="primary-button" type="button">この内容で注文する <span aria-hidden="true">→</span></button></div></dialog>
   <dialog id="status-dialog" class="modal"><div class="modal-content status-content"><button class="icon-button" data-close="status-dialog" aria-label="閉じる">×</button><div id="status-content"></div></div></dialog>
   <script src="js/store.js"></script>
   <script src="js/menu.js"></script>
