@@ -12,10 +12,12 @@ if (tableInfo) {
   const tableMessage = tableInfo.querySelector("#tableMessage");
 
   if (tableNumber) {
+    tableInfo.classList.remove("table-info--missing");
     numberHeading.textContent = `${tableNumber}番`;
     tableMessage.textContent = "この卓からご注文いただけます。";
   } else {
-    numberHeading.textContent = "卓番号を確認できません";
+    tableInfo.classList.add("table-info--missing");
+    numberHeading.textContent = "卓番号が未指定です";
     tableMessage.textContent = "卓番号付きのQRコードからアクセスしてください。";
   }
 }

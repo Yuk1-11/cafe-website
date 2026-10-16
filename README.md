@@ -144,14 +144,17 @@ cultural-festival-cafe/
 - [x] Firebase Authentication・Firestore・Cloud Functionsの接続処理を用意する
 - [x] 注文時の在庫確認、Firestoreルール、Hosting設定を用意する
 - [x] GitHubへソースコードを保存する
+- [x] JavaScript構文、Firebase設定ファイル、Functionsの公開関数、依存関係の脆弱性を確認する
 
 ### これから行うこと
 
-1. [ ] Firebase Consoleでプロジェクトを作成し、Webアプリを登録する。
+**現在の停止地点：** Firebaseプロジェクトが未作成で、この環境のFirebase CLIも未ログインです。Firebase Consoleでプロジェクトを用意し、オーナーがCLIにログインするまで実データへの接続・公開はできません。Blazeへの変更も料金承認があるまで行いません。
+
+1. [ ] Firebase Consoleでプロジェクトを作成し、Webアプリを登録する（プロジェクトオーナーによる操作が必要）。
 2. [ ] Webアプリの設定値を [`js/firebase-config.js`](./js/firebase-config.js) に記入する。
 3. [ ] Firebase Authenticationでメール/パスワード認証を有効にし、スタッフ用ユーザーを作る。
 4. [ ] Firestore Databaseを作成する。
-5. [ ] Cloud Functionsを使うためのBlaze料金プランを確認する。**従量課金のため、料金と支払い設定を確認・承認できる人が判断する。**
+5. [ ] Cloud Functionsを使うためのBlaze料金プランを確認する。**従量課金のため、料金と支払い設定を確認・承認できる人が判断する。明示的な承認なしに変更しない。**
 6. [ ] READMEの「スタッフ権限を設定する」に従い、スタッフアカウントに権限を付ける。
 7. [ ] 「Hostingとバックエンドをデプロイする」のコマンドを実行し、Hosting・Functions・Firestoreルールを公開する。
 8. [ ] スタッフ画面へ初回ログインし、初期メニューが表示されることを確認する。
