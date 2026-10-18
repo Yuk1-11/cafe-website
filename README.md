@@ -132,9 +132,72 @@ cultural-festival-cafe/
 - クライアントから送信された価格や合計金額をそのまま信用しない
 - Firebaseの秘密鍵や認証情報をGitHubに公開しない
 
+## 🚀 ローカル環境構築と実行手順
+
+このアプリは、Firebase 未設定時のプレビューと、Firebase を有効化した本番運用の両方で動かせます。
+
+### 1. 必要な環境
+
+- Node.js 22 LTS
+- npm
+- Python 3
+- Firebase CLI（本番デプロイ用）
+
+### 2. 依存関係をインストールする
+
+```bash
+cd /Users/yuki/Desktop/2年I科/文化祭/cafe-website-main
+npm install --prefix functions
+```
+
+Cloud Functions 用の依存関係が入ります。Node.js 22 以外では Firebase SDK の互換性で不具合が出る可能性があるため、22 系を推奨します。
+
+### 3. ローカルで画面を確認する
+
+Firebase 設定なしでも、見た目の確認はできます。
+
+```bash
+cd /Users/yuki/Desktop/2年I科/文化祭/cafe-website-main
+python3 -m http.server 8000
+```
+
+ブラウザーで `http://localhost:8000` を開いてください。
+
+- `index.html`: お客さま向け注文画面
+- `admin.html`: スタッフ向け管理画面
+
+注意: Firebase 未設定の状態では、注文確定・ログイン・商品保存は動作しません。
+
+### 4. Firebase を使う場合の準備
+
+本番運用を行うには次を設定してください。
+
+1. Firebase Console でプロジェクトを作成する
+2. Web アプリを登録して `js/firebase-config.js` に設定値を入れる
+3. Firebase Authentication でメール/パスワード認証を有効化する
+4. Firestore Database を作成する
+5. Cloud Functions を使うために Blaze プランを確認・有効化する
+6. スタッフアカウントに `staff: true` の権限を付与する
+7. Firebase CLI でデプロイする
+
+```bash
+npx firebase-tools login
+npx firebase-tools deploy --project <PROJECT_ID>
+```
+
+### 5. 実行の順番
+
+1. まずはローカルプレビューで画面を確認する
+2. Firebase の設定値を `js/firebase-config.js` に入れる
+3. スタッフアカウントと権限を設定する
+4. Firestore と Cloud Functions をデプロイする
+5. スマートフォンから注文テストを行う
+
+これで「画面確認」から「実運用テスト」まで進められます。
+
 ## TODOリスト：公開までにやること
 
-画面とFirebase連携のコードは実装済みですが、Firebaseプロジェクトがまだないため、実際の注文受付・公開はこれからです。上から順に進めてください。
+画面と Firebase 連携のコードは実装済みですが、Firebase プロジェクトがまだないため、実際の注文受付・公開はこれからです。上から順に進めてください。
 
 ### 実装済み
 
@@ -145,10 +208,9 @@ cultural-festival-cafe/
 - [x] 注文時の在庫確認、Firestoreルール、Hosting設定を用意する
 - [x] GitHubへソースコードを保存する
 - [x] JavaScript構文、Firebase設定ファイル、Functionsの公開関数、依存関係の脆弱性を確認する
+- [x] 持ち帰り注文用にランダムな5桁の合言葉を生成し、受け渡しに使えるようにする
 
 ### これから行うこと
-
-**現在の停止地点：** Firebaseプロジェクトが未作成で、この環境のFirebase CLIも未ログインです。Firebase Consoleでプロジェクトを用意し、オーナーがCLIにログインするまで実データへの接続・公開はできません。Blazeへの変更も料金承認があるまで行いません。
 
 1. [ ] Firebase Consoleでプロジェクトを作成し、Webアプリを登録する（プロジェクトオーナーによる操作が必要）。
 2. [ ] Webアプリの設定値を [`js/firebase-config.js`](./js/firebase-config.js) に記入する。
@@ -158,8 +220,48 @@ cultural-festival-cafe/
 6. [ ] READMEの「スタッフ権限を設定する」に従い、スタッフアカウントに権限を付ける。
 7. [ ] 「Hostingとバックエンドをデプロイする」のコマンドを実行し、Hosting・Functions・Firestoreルールを公開する。
 8. [ ] スタッフ画面へ初回ログインし、初期メニューが表示されることを確認する。
-9. [ ] スマートフォンからテスト注文し、注文番号・在庫の減少・スタッフ画面への反映・注文状況の更新を確認する。
+9. [ ] スマートフォンからテスト注文し、注文番号・合言葉・在庫の減少・スタッフ画面への反映・注文状況の更新を確認する。
 10. [ ] 公開前に売り切れ時の注文制限、同時注文、スマートフォン表示、料金アラートなどを確認し、本番運用テストを行う。
+
+## TODOリスト（実行順）
+
+### 1. 事前準備
+
+- [ ] Node.js 22 と Firebase CLI を用意する
+- [ ] `npm install --prefix functions` を実行する
+- [ ] `python3 -m http.server 8000` でローカル確認できることを確認する
+
+### 2. Firebase 設定
+
+- [ ] Firebase Console でプロジェクトを作成する
+- [ ] Web アプリの設定値を `js/firebase-config.js` に入力する
+- [ ] Firebase Authentication でメール/パスワード認証を有効化する
+- [ ] Firestore Database を作成する
+- [ ] Blaze プランの利用有無と支払い承認を確認する
+
+### 3. スタッフ権限と公開
+
+- [ ] スタッフ用アカウントを作成する
+- [ ] `functions/scripts/set-staff.js` を使って `staff: true` を付与する
+- [ ] Firebase Hosting と Functions をデプロイする
+- [ ] 管理画面にログインできることを確認する
+
+### 4. 運用テスト
+
+- [ ] 初期メニューが自動登録されることを確認する
+- [ ] 注文を作成し、在庫が減ることを確認する
+- [ ] スタッフ画面で注文状況を更新できることを確認する
+- [ ] 注文状況確認画面で注文状態が表示されることを確認する
+- [ ] 持ち帰りの合言葉が表示され、受け渡しに使えることを確認する
+- [ ] 売り切れ商品が注文できないことを確認する
+- [ ] 本番向けの最終確認を行う
+
+### 5. 運用前チェック
+
+- [ ] 料金アラートの設定を確認する
+- [ ] Firestore Rules が正しいことを確認する
+- [ ] ログインユーザーと管理者ユーザーの役割分担を確認する
+- [ ] 文化祭当日用の手順書を用意する
 
 ## 📝 備考
 

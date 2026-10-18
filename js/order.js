@@ -57,11 +57,11 @@ if (cartButton) {
     statusMessage.textContent = "";
     try {
       const result = await placeOrder(cart.map(({ id, quantity }) => ({ id, quantity })));
-      const order = { orderNumber: result.orderNumber, trackingToken: result.trackingToken };
+      const order = { orderNumber: result.orderNumber, trackingToken: result.trackingToken, pickupCode: result.pickupCode };
       sessionStorage.setItem("cafe-active-order", JSON.stringify(order));
       saveCart([]);
       cartDialog.close();
-      document.querySelector("#status-content").innerHTML = `<p class="eyebrow">ORDER RECEIVED</p><h2>ご注文ありがとうございます</h2><div class="order-number">#${order.orderNumber}</div><p>この番号が呼ばれるまで、席でお待ちください。</p>`;
+      document.querySelector("#status-content").innerHTML = `<p class="eyebrow">ORDER RECEIVED</p><h2>ご注文ありがとうございます</h2><div class="order-number">#${order.orderNumber}</div><div class="pickup-code">合言葉: <strong>${escapeHtml(order.pickupCode)}</strong></div><p>持ち帰りの方はこの合言葉をお店のスタッフにお伝えください。</p>`;
       statusMessage.textContent = "";
       checkStatusButton.hidden = false;
       resumeOrderButton.hidden = false;
@@ -104,7 +104,7 @@ if (cartButton) {
     try {
       const order = JSON.parse(sessionStorage.getItem("cafe-active-order") || "null");
       if (!order) return;
-      document.querySelector("#status-content").innerHTML = `<p class="eyebrow">YOUR ORDER</p><h2>ご注文状況</h2><div class="order-number">#${order.orderNumber}</div>`;
+      document.querySelector("#status-content").innerHTML = `<p class="eyebrow">YOUR ORDER</p><h2>ご注文状況</h2><div class="order-number">#${order.orderNumber}</div><div class="pickup-code">合言葉: <strong>${escapeHtml(order.pickupCode)}</strong></div>`;
       checkStatusButton.hidden = false;
       statusDialog.showModal();
       showOrderStatus(order);

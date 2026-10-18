@@ -13,8 +13,11 @@ const DEFAULT_PRODUCTS = [
   { id: "cookie", name: "ドットクッキー", description: "さくさく手作り。コーヒーと一緒にどうぞ。", price: 200, emoji: "🍪", stock: 0, order: 4, active: true }
 ];
 const PRODUCT_FIELDS = ["name", "description", "price", "emoji", "stock"];
+const PICKUP_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const isProductId = value =>
   typeof value === "string" && (/^[a-f0-9]{24}$/.test(value) || ["coffee", "tea", "cake", "cookie"].includes(value));
+
+const generatePickupCode = () => Array.from({ length: 5 }, () => PICKUP_ALPHABET[Math.floor(Math.random() * PICKUP_ALPHABET.length)]).join("");
 
 const validateProduct = product => {
   if (typeof product?.name !== "string" || product.name.trim().length < 1 || product.name.trim().length > 40 ||
@@ -67,6 +70,7 @@ exports.createOrder = onCall(async request => {
   const counterRef = db.collection("orderCounters").doc(orderDate);
   const trackingToken = randomBytes(32).toString("hex");
   const trackingHash = createHash("sha256").update(trackingToken).digest("hex");
+  const pickupCode = generatePickupCode();
   let response;
 
   await db.runTransaction(async transaction => {
@@ -106,10 +110,11 @@ exports.createOrder = onCall(async request => {
       items: orderItems,
       total,
       status: ORDER_STATUSES[0],
+      pickupCode,
       trackingHash,
       createdAt: FieldValue.serverTimestamp()
     });
-    response = { orderNumber, trackingToken };
+    response = { orderNumber, trackingToken, pickupCode };
   });
 
   return response;
