@@ -29,13 +29,13 @@ if (loginPanel) {
     adminMessage.textContent = `データを更新できませんでした: ${error.message}`;
   };
   const renderStats = () => {
-    const pending = orders.filter(order => order.status !== "受け渡し済み").length;
-    const sales = orders.reduce((sum, order) => sum + order.total, 0);
+    const pending = orders.filter(order => order.status !== "受け渡し済み" && order.status !== "取消").length;
+    const sales = orders.reduce((sum, order) => sum + (order.status === "取消" ? 0 : order.total), 0);
     document.querySelector("#stats").innerHTML = `<div class="stat"><span>表示中の対応中注文</span><strong>${pending}件</strong></div><div class="stat"><span>表示中の注文（最大100件）</span><strong>${orders.length}件</strong></div><div class="stat"><span>表示中の売上</span><strong>${yen(sales)}</strong></div>`;
   };
   const renderOrders = () => {
     document.querySelector("#orders-panel").innerHTML = orders.length ? orders.map(order =>
-      `<article class="order-card"><div class="order-meta"><h3>注文 #${escapeHtml(order.orderNumber)}</h3><time>${new Date(order.createdAt).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}</time></div><p class="order-items">${order.items.map(item => `${escapeHtml(item.name)} × ${item.quantity}`).join(" / ")}</p><div class="pickup-box">合言葉: <strong>${escapeHtml(order.pickupCode || "未設定")}</strong></div><div class="order-meta"><strong>${yen(order.total)}</strong><label class="sr-only" for="status-${escapeHtml(order.id)}">注文 #${escapeHtml(order.orderNumber)} の状況</label><select class="status-select" id="status-${escapeHtml(order.id)}" data-status="${escapeHtml(order.id)}">${["受付済み", "調理中", "受け渡し待ち", "受け渡し済み"].map(status => `<option ${status === order.status ? "selected" : ""}>${status}</option>`).join("")}</select></div></article>`
+  `<article class="order-card"><div class="order-meta"><h3>注文 #${escapeHtml(order.orderNumber)}</h3><time>${new Date(order.createdAt).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}</time></div><p class="order-items">${order.items.map(item => `${escapeHtml(item.name)} × ${item.quantity}`).join(" / ")}</p><div class="pickup-box">合言葉: <strong>${escapeHtml(order.pickupCode || "未設定")}</strong></div><div class="order-meta"><strong>${yen(order.total)}</strong><label class="sr-only" for="status-${escapeHtml(order.id)}">注文 #${escapeHtml(order.orderNumber)} の状況</label><select class="status-select" id="status-${escapeHtml(order.id)}" data-status="${escapeHtml(order.id)}" ${order.status === "取消" ? "disabled" : ""}>${["受付済み", "調理中", "受け渡し待ち", "受け渡し済み", "取消"].map(status => `<option ${status === order.status ? "selected" : ""} ${status === "取消" && order.status === "受け渡し済み" ? "disabled" : ""}>${status}</option>`).join("")}</select></div></article>`
     ).join("") : "<p>まだ注文はありません。</p>";
   };
   const renderProducts = () => {
@@ -112,6 +112,10 @@ if (loginPanel) {
       }
       adminMessage.textContent = "";
     } catch (error) {
+      if (status) {
+        const order = orders.find(item => item.id === status);
+        if (order) event.target.value = order.status;
+      }
       showError(error);
     }
   });

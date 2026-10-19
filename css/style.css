@@ -274,6 +274,15 @@ select:focus-visible {
   font-weight: 700;
 }
 
+.table-info--invalid {
+  background: #fff1e9;
+  border-left-color: var(--accent-dark);
+}
+
+.table-info--invalid #tableMessage {
+  font-weight: 700;
+}
+
 .hero-art {
   position: relative;
   display: grid;
@@ -473,6 +482,27 @@ select:focus-visible {
   font-weight: 800;
 }
 
+.price-row {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.menu-purchase-controls {
+  display: grid;
+  grid-template-columns: 1fr;
+  justify-items: stretch;
+  gap: 6px;
+}
+
+.menu-quantity {
+  justify-content: center;
+}
+
+.menu-purchase-controls .add-button {
+  width: 100%;
+}
+
 .menu-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -629,6 +659,33 @@ select:focus-visible {
   padding: 7px 9px;
   font-size: 10px;
   white-space: nowrap;
+}
+
+.menu-purchase-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-quantity {
+  gap: 4px;
+}
+
+.menu-quantity button {
+  flex: none;
+  width: 24px;
+  height: 27px;
+  padding: 0;
+}
+
+.menu-quantity b {
+  min-width: 14px;
+  text-align: center;
+}
+
+.menu-quantity button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .add-button:hover,
@@ -1306,7 +1363,18 @@ select:focus-visible {
     gap: 8px;
   }
 
-  .add-button {
+  .menu-purchase-controls {
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+    gap: 6px;
+  }
+
+  .menu-quantity {
+    justify-content: center;
+  }
+
+  .menu-purchase-controls .add-button {
     width: 100%;
   }
 

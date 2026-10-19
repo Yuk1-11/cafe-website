@@ -5,6 +5,20 @@ export const DEFAULT_PRODUCTS = [
   { id: "cookie", name: "ドットクッキー", description: "さくさく手作り。コーヒーと一緒にどうぞ。", price: 200, emoji: "🍪", stock: 0, order: 4, active: true }
 ];
 
+export const getTableNumber = search => {
+  const params = new URLSearchParams(search);
+  const value = (params.get("table") || params.get("tableNumber") || "").trim();
+  if (!value) return { number: null, error: "missing" };
+  if ([...value].some(character => character < "0" || character > "9")) {
+    return { number: null, error: "invalid" };
+  }
+  const number = Number(value);
+  if (!Number.isSafeInteger(number) || number < 1 || number > 10) {
+    return { number: null, error: "range" };
+  }
+  return { number, error: null };
+};
+
 export const getCart = () => {
   try {
     const cart = JSON.parse(localStorage.getItem("cafe-cart") || "[]");

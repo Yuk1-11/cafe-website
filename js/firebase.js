@@ -17,7 +17,7 @@ const call = (name, data) => {
 };
 
 export const subscribeProducts = (onChange, onError) => {
-  if (!db) return () => {};
+  if (!db) return () => { };
   return onSnapshot(
     query(collection(db, "products"), orderBy("order")),
     snapshot => onChange(snapshot.docs.map(document => ({ id: document.id, ...document.data() }))),
@@ -38,7 +38,7 @@ export const subscribeOrders = (onChange, onError) => {
   );
 };
 
-export const placeOrder = items => call("createOrder", { items });
+export const placeOrder = (items, tableNumber) => call("createOrder", { items, tableNumber });
 export const fetchOrderStatus = (orderNumber, trackingToken) => call("getOrderStatus", { orderNumber, trackingToken });
 export const changeOrderStatus = (orderId, status) => call("updateOrderStatus", { orderId, status });
 export const changeProductStock = (productId, stock) => call("updateProductStock", { productId, stock });
@@ -50,4 +50,4 @@ export const signInStaff = (email, password) => {
   return signInWithEmailAndPassword(auth, email, password);
 };
 export const signOutStaff = () => auth ? signOut(auth) : Promise.resolve();
-export const observeAuth = (callback, onError) => auth ? onAuthStateChanged(auth, callback, onError) : () => {};
+export const observeAuth = (callback, onError) => auth ? onAuthStateChanged(auth, callback, onError) : () => { };

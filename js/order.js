@@ -1,5 +1,5 @@
 import { fetchOrderStatus, isFirebaseConfigured, placeOrder } from "./firebase.js";
-import { DEFAULT_PRODUCTS, escapeHtml, getCart, saveCart, yen } from "./store.js";
+import { DEFAULT_PRODUCTS, escapeHtml, getCart, getTableNumber, saveCart, yen } from "./store.js";
 
 const cartButton = document.querySelector("#cart-button");
 
@@ -16,6 +16,7 @@ if (cartButton) {
   const renderCart = () => {
     products = window.cafeProducts || products;
     const cart = getCart();
+    const table = getTableNumber(window.location.search);
     let total = 0;
     let count = 0;
     cartItems.innerHTML = cart.length ? cart.map(line => {
@@ -28,7 +29,7 @@ if (cartButton) {
     document.querySelector("#cart-count").textContent = `${count}点`;
     document.querySelector("#cart-total").textContent = yen(total);
     document.querySelector("#dialog-total").textContent = yen(total);
-    checkoutButton.disabled = !cart.length || !isFirebaseConfigured;
+    checkoutButton.disabled = !cart.length || !isFirebaseConfigured || table.number === null;
   };
 
   renderCart();
@@ -52,11 +53,12 @@ if (cartButton) {
 
   checkoutButton.addEventListener("click", async () => {
     const cart = getCart();
-    if (!cart.length || !isFirebaseConfigured) return;
+    const table = getTableNumber(window.location.search);
+    if (!cart.length || !isFirebaseConfigured || table.number === null) return;
     checkoutButton.disabled = true;
     statusMessage.textContent = "";
     try {
-      const result = await placeOrder(cart.map(({ id, quantity }) => ({ id, quantity })));
+      const result = await placeOrder(cart.map(({ id, quantity }) => ({ id, quantity })), table.number);
       const order = { orderNumber: result.orderNumber, trackingToken: result.trackingToken, pickupCode: result.pickupCode };
       sessionStorage.setItem("cafe-active-order", JSON.stringify(order));
       saveCart([]);
