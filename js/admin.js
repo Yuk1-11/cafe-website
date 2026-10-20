@@ -35,7 +35,7 @@ if (loginPanel) {
   };
   const renderOrders = () => {
     document.querySelector("#orders-panel").innerHTML = orders.length ? orders.map(order =>
-  `<article class="order-card"><div class="order-meta"><h3>注文 #${escapeHtml(order.orderNumber)}</h3><time>${new Date(order.createdAt).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}</time></div><p class="order-items">${order.items.map(item => `${escapeHtml(item.name)} × ${item.quantity}`).join(" / ")}</p><div class="pickup-box">合言葉: <strong>${escapeHtml(order.pickupCode || "未設定")}</strong></div><div class="order-meta"><strong>${yen(order.total)}</strong><label class="sr-only" for="status-${escapeHtml(order.id)}">注文 #${escapeHtml(order.orderNumber)} の状況</label><select class="status-select" id="status-${escapeHtml(order.id)}" data-status="${escapeHtml(order.id)}" ${order.status === "取消" ? "disabled" : ""}>${["受付済み", "調理中", "受け渡し待ち", "受け渡し済み", "取消"].map(status => `<option ${status === order.status ? "selected" : ""} ${status === "取消" && order.status === "受け渡し済み" ? "disabled" : ""}>${status}</option>`).join("")}</select></div></article>`
+      `<article class="order-card"><div class="order-meta"><h3>注文 #${escapeHtml(order.orderNumber)}</h3><time>${new Date(order.createdAt).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}</time></div><p class="order-items">${order.items.map(item => `${escapeHtml(item.name)} × ${item.quantity}`).join(" / ")}</p><div class="pickup-box">合言葉: <strong>${escapeHtml(order.pickupCode || "未設定")}</strong></div><div class="order-meta"><strong>${yen(order.total)}</strong><label class="sr-only" for="status-${escapeHtml(order.id)}">注文 #${escapeHtml(order.orderNumber)} の状況</label><select class="status-select" id="status-${escapeHtml(order.id)}" data-status="${escapeHtml(order.id)}" ${order.status === "取消" ? "disabled" : ""}>${["受付済み", "調理中", "受け渡し待ち", "受け渡し済み", "取消"].map(status => `<option ${status === order.status ? "selected" : ""} ${status === "取消" && order.status === "受け渡し済み" ? "disabled" : ""}>${status}</option>`).join("")}</select></div></article>`
     ).join("") : "<p>まだ注文はありません。</p>";
   };
   const renderProducts = () => {
@@ -94,7 +94,8 @@ if (loginPanel) {
     event.preventDefault();
     loginError.textContent = "";
     try {
-      await signInStaff(document.querySelector("#staff-email").value.trim(), document.querySelector("#staff-password").value);
+      await signInStaff(document.querySelector("#staff-passphrase").value);
+      document.querySelector("#staff-passphrase").value = "";
     } catch (error) {
       loginError.textContent = `ログインできませんでした: ${error.message}`;
     }
@@ -164,7 +165,12 @@ if (loginPanel) {
     loginError.textContent = "Firebase Web設定をjs/firebase-config.jsに入力してください。";
     document.querySelector("#login-form").querySelectorAll("input, button").forEach(element => { element.disabled = true; });
   } else {
+    let staffExpiryTimer = null;
     observeAuth(async user => {
+      if (staffExpiryTimer !== null) {
+        window.clearTimeout(staffExpiryTimer);
+        staffExpiryTimer = null;
+      }
       if (stopOrders) stopOrders();
       if (stopProducts) stopProducts();
       stopOrders = null;
@@ -176,13 +182,27 @@ if (loginPanel) {
       }
       try {
         const token = await user.getIdTokenResult(true);
-        if (token.claims.staff !== true) {
+        const staffExpiresAt = token.claims.staffExpiresAt;
+        if (token.claims.staff !== true || !Number.isSafeInteger(staffExpiresAt) || staffExpiresAt <= Date.now()) {
           await signOutStaff();
-          loginError.textContent = "このアカウントにはスタッフ権限がありません。管理者に設定を依頼してください。";
+          loginError.textContent = "スタッフ用合言葉の有効期限が切れています。";
           return;
         }
         loginPanel.classList.add("hidden");
         dashboard.classList.remove("hidden");
+        const testLogin = staffExpiresAt <= Date.parse("2026-11-13T00:00:00+09:00");
+        document.querySelector("#temporary-login-notice").hidden = !testLogin;
+        staffExpiryTimer = window.setTimeout(async () => {
+          try {
+            await signOutStaff();
+          } catch (error) {
+            showError(error);
+          } finally {
+            dashboard.classList.add("hidden");
+            loginPanel.classList.remove("hidden");
+            loginError.textContent = "スタッフログインの有効期限が終了しました。";
+          }
+        }, Math.min(staffExpiresAt - Date.now(), 2147483647));
         adminMessage.textContent = "データを読み込んでいます…";
         await initializeCatalog();
         stopOrders = subscribeOrders(nextOrders => {

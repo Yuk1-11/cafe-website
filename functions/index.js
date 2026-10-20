@@ -1,11 +1,21 @@
 const { createHash, randomBytes, timingSafeEqual } = require("node:crypto");
 const { initializeApp } = require("firebase-admin/app");
-const { FieldValue, getFirestore } = require("firebase-admin/firestore");
+const { getAuth } = require("firebase-admin/auth");
+const { FieldValue, Timestamp, getFirestore } = require("firebase-admin/firestore");
+const { defineSecret } = require("firebase-functions/params");
 const { HttpsError, onCall } = require("firebase-functions/v2/https");
 
 initializeApp();
 const db = getFirestore();
+const adminAuth = getAuth();
+const staffPassphrase = defineSecret("STAFF_PASSPHRASE");
 const ORDER_STATUSES = ["受付済み", "調理中", "受け渡し待ち", "受け渡し済み", "取消"];
+const STAFF_UID = "dot-cafe-passphrase-staff";
+const STAFF_ACCESS_START = Date.parse("2026-11-13T00:00:00+09:00");
+const STAFF_ACCESS_END = Date.parse("2026-11-14T00:00:00+09:00");
+const STAFF_TEST_SESSION_MS = 10 * 60 * 1000;
+const LOGIN_ATTEMPT_WINDOW_MS = 15 * 60 * 1000;
+const MAX_LOGIN_ATTEMPTS = 5;
 const DEFAULT_PRODUCTS = [
   { id: "coffee", name: "ドットラテ", description: "まろやかミルクと香ばしいコーヒー。ほっとする定番の一杯。", price: 350, emoji: "☕", stock: 20, order: 1, active: true },
   { id: "tea", name: "しゅわしゅわソーダ", description: "カラフルな果実を浮かべた、見た目も楽しいソーダ。", price: 400, emoji: "🥤", stock: 12, order: 2, active: true },
@@ -30,10 +40,87 @@ const validateProduct = product => {
 };
 
 const requireStaff = request => {
-  if (!request.auth || request.auth.token.staff !== true) {
+  if (!request.auth || request.auth.token.staff !== true ||
+    !Number.isSafeInteger(request.auth.token.staffExpiresAt) ||
+    request.auth.token.staffExpiresAt <= Date.now()) {
     throw new HttpsError("permission-denied", "スタッフ権限が必要です。");
   }
 };
+
+const consumeLoginAttempt = async request => {
+  const ip = request.rawRequest.ip;
+  if (!ip) throw new HttpsError("unavailable", "接続元を確認できません。時間をおいて再度お試しください。");
+
+  const ipHash = createHash("sha256").update(ip).digest("hex");
+  const attemptRef = db.collection("staffPassphraseAttempts").doc(ipHash);
+  const now = Date.now();
+  await db.runTransaction(async transaction => {
+    const snapshot = await transaction.get(attemptRef);
+    const data = snapshot.data();
+    const windowEndsAt = data?.windowEndsAt?.toMillis() || 0;
+    const attempts = windowEndsAt > now ? data.attempts : 0;
+    if (attempts >= MAX_LOGIN_ATTEMPTS) {
+      throw new HttpsError("resource-exhausted", "試行回数が上限に達しました。15分後に再度お試しください。");
+    }
+    transaction.set(attemptRef, {
+      attempts: attempts + 1,
+      windowEndsAt: Timestamp.fromMillis(windowEndsAt > now ? windowEndsAt : now + LOGIN_ATTEMPT_WINDOW_MS)
+    });
+  });
+};
+
+exports.signInStaffWithPassphrase = onCall(
+  { secrets: [staffPassphrase], maxInstances: 2 },
+  async request => {
+    const passphrase = request.data?.passphrase;
+    if (typeof passphrase !== "string" || passphrase.length < 1 || passphrase.length > 256) {
+      throw new HttpsError("invalid-argument", "合言葉を入力してください。");
+    }
+
+    await consumeLoginAttempt(request);
+    const expected = Buffer.from(staffPassphrase.value());
+    const received = Buffer.from(passphrase);
+    if (expected.length < 16) {
+      throw new HttpsError("failed-precondition", "管理者が16文字以上の合言葉を設定する必要があります。");
+    }
+    if (expected.length !== received.length || !timingSafeEqual(expected, received)) {
+      throw new HttpsError("unauthenticated", "合言葉が正しくありません。");
+    }
+
+    const now = Date.now();
+    let staffExpiresAt;
+    if (now >= STAFF_ACCESS_START && now < STAFF_ACCESS_END) {
+      staffExpiresAt = STAFF_ACCESS_END;
+    } else if (now < STAFF_ACCESS_START) {
+      const testExpiresAt = Math.min(now + STAFF_TEST_SESSION_MS, STAFF_ACCESS_START);
+      if (testExpiresAt <= now) {
+        throw new HttpsError("failed-precondition", "事前確認ログインの有効期限が終了しました。");
+      }
+      staffExpiresAt = testExpiresAt;
+      const testRef = db.collection("staffPassphraseTests").doc("one-time-login");
+      const testToken = await adminAuth.createCustomToken(STAFF_UID, {
+        staff: true,
+        staffExpiresAt: testExpiresAt
+      });
+      await db.runTransaction(async transaction => {
+        const snapshot = await transaction.get(testRef);
+        if (snapshot.exists) {
+          throw new HttpsError("failed-precondition", "事前確認ログインは既に使用されています。");
+        }
+        transaction.create(testRef, { usedAt: FieldValue.serverTimestamp() });
+      });
+      return { customToken: testToken, staffExpiresAt, isTestLogin: true };
+    } else {
+      throw new HttpsError("failed-precondition", "合言葉の有効期間は終了しました。");
+    }
+
+    const customToken = await adminAuth.createCustomToken(STAFF_UID, {
+      staff: true,
+      staffExpiresAt
+    });
+    return { customToken, staffExpiresAt, isTestLogin: false };
+  }
+);
 
 const getTokyoDate = () => {
   const parts = new Intl.DateTimeFormat("en-CA", {

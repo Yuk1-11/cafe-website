@@ -11,12 +11,13 @@
   <header class="site-header"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">●</span><span>ドットカフェ<small>DOT CAFE / STAFF</small></span></a><a class="header-link" href="index.html">お客さま画面 <span aria-hidden="true">↗</span></a></header>
   <main class="admin-page">
     <section id="login-panel" class="login-panel">
-      <p class="eyebrow">● STAFF ONLY</p><h1>おかえりなさい。</h1><p>スタッフアカウントでログインして、今日のカフェをひらきましょう。</p>
+      <p class="eyebrow">● STAFF ONLY</p><h1>おかえりなさい。</h1><p>今日だけのスタッフ用合言葉で、カフェをひらきましょう。</p>
       <p id="login-error" class="form-error" role="alert"></p>
-      <form id="login-form"><label>スタッフ用メールアドレス<input id="staff-email" type="email" required autocomplete="username" placeholder="staff@example.com"></label><label>パスワード<input id="staff-password" type="password" required autocomplete="current-password" placeholder="Firebase Authenticationのパスワード"></label><button class="primary-button" type="submit">管理画面へ <span aria-hidden="true">→</span></button></form>
-      <p class="login-hint">Firebase Authenticationで作成し、スタッフ権限を設定したアカウントでログインしてください。</p>
+      <form id="login-form"><label>スタッフ用合言葉<input id="staff-passphrase" type="password" required autocomplete="current-password" maxlength="256" placeholder="管理者から共有された合言葉"></label><button class="primary-button" type="submit">管理画面へ <span aria-hidden="true">→</span></button></form>
+      <p class="login-hint">合言葉はサーバーで確認します。利用できるのは2026年11月13日（日本時間）のみです。事前確認ログインは一度だけ、10分間利用できます。</p>
     </section>
     <section id="dashboard" class="dashboard hidden">
+      <p id="temporary-login-notice" class="backend-message" role="status" hidden>事前確認用の一度限りのログインです。10分後に自動で終了します。</p>
       <div class="dashboard-heading"><div><p class="eyebrow">● DOT CAFE / DASHBOARD</p><h1>今日のお店のようす</h1></div><button id="logout-button" class="secondary-button" type="button">ログアウト</button></div>
       <div id="stats" class="stats"></div>
       <div class="admin-tabs"><button class="tab active" data-tab="orders">注文管理</button><button class="tab" data-tab="products">商品・在庫</button><button class="tab" data-tab="history">注文履歴</button></div>

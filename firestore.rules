@@ -3,7 +3,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function isStaff() {
-      return request.auth != null && request.auth.token.staff == true;
+      return request.auth != null
+        && request.auth.token.staff == true
+        && request.auth.token.staffExpiresAt is int
+        && request.auth.token.staffExpiresAt > request.time.toMillis();
     }
 
     match /products/{productId} {

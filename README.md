@@ -17,7 +17,7 @@
 ### スタッフ：注文を受けて、メニューを管理する
 
 1. 注文ページ右上の「スタッフの方はこちら」を押します。
-2. 管理者から渡されたスタッフ用メールアドレスとパスワードでログインします。Firebaseにスタッフとして登録されたアカウントだけが使えます。
+2. 管理者から共有されたスタッフ用合言葉でログインします。合言葉はサーバー側で照合され、有効期間の間だけ管理機能を使えます。
 3. 「注文管理」で商品・数量・金額を確認し、注文ごとの選択欄を「受付済み」→「調理中」→「受け渡し待ち」→「受け渡し済み」と進めます。お客さまの注文状況にも反映されます。
 4. 「商品・在庫」で新しい商品を登録するときは、商品名・説明・価格・絵文字・在庫を入力して「メニューを追加」を押します。
 5. 登録済みの商品は「編集」を押すと入力欄に内容が入ります。変更後に「変更を保存」を押してください。
@@ -32,12 +32,10 @@
 Firebase Consoleとコマンド操作が必要です。順番に一度設定した後、日々の注文・メニュー管理はスタッフ画面から行います。
 
 1. Firebaseプロジェクトを作り、Webアプリを登録して、表示された設定値を [`js/firebase-config.js`](./js/firebase-config.js) に貼り付けます。
-2. Firebase Authenticationでメール/パスワード認証を有効にし、スタッフ用アカウントを作ります。
-3. Firestore Databaseを作成します。
-4. Cloud Functionsを使えるよう、Firebaseの料金プランを確認してBlazeを有効にします。**利用量によって料金が発生する可能性があります。** 金額・無料枠を確認し、支払い設定を許可できる人が判断してください。
-5. スタッフアカウントに「スタッフ権限」を付けます（下の「スタッフ権限を設定する」を参照）。
-6. 下の手順でFunctions・Firestoreルール・Hostingを公開します。
-7. スタッフ画面に初回ログインすると商品メニューが自動登録されます。注文ページを開き、注文と在庫更新を確認します。
+2. Firestore Databaseを作成します。最初の商品カタログは、管理画面への初回ログイン時に登録されます。
+3. Cloud Functionsを使うためBlaze料金プランを設定します。**利用量によって料金が発生する可能性があります。** 料金・無料枠を確認してください。
+4. 16文字以上のスタッフ用合言葉を、ソースコードやチャットに書かず、Firebase Functions Secretとして登録します。
+5. Functions・Firestoreルール・Hostingを公開し、事前確認ログインと当日の注文・在庫更新を確認します。
 
 Firebase設定を受け取る場合は、Webアプリの設定JSONだけを使ってください。サービスアカウントの秘密鍵、パスワード、支払い情報はGitHubやチャットへ登録しないでください。
 
@@ -116,7 +114,7 @@ cultural-festival-cafe/
 │   └── admin.js        # 注文・在庫管理
 ├── functions/          # 注文・商品更新などのサーバー側処理
 │   └── scripts/
-│       └── set-staff.js # スタッフ権限の設定
+│       └── set-staff.js # 旧メール認証用スクリプト（合言葉方式では未使用）
 ├── firestore.rules     # データベースのアクセス制御
 ├── firebase.json
 └── README.md
@@ -174,22 +172,21 @@ python3 -m http.server 8000
 
 1. Firebase Console でプロジェクトを作成する
 2. Web アプリを登録して `js/firebase-config.js` に設定値を入れる
-3. Firebase Authentication でメール/パスワード認証を有効化する
+3. Firebase Functions Secretにスタッフ用合言葉を登録する
 4. Firestore Database を作成する
 5. Cloud Functions を使うために Blaze プランを確認・有効化する
-6. スタッフアカウントに `staff: true` の権限を付与する
-7. Firebase CLI でデプロイする
+6. Firebase CLI でFunctions・Firestoreルール・Hostingをデプロイする
 
 ```bash
 npx firebase-tools login
-npx firebase-tools deploy --project <PROJECT_ID>
+npx firebase-tools deploy --only functions,firestore:rules,hosting --project cafe-website-4367f
 ```
 
 ### 5. 実行の順番
 
 1. まずはローカルプレビューで画面を確認する
 2. Firebase の設定値を `js/firebase-config.js` に入れる
-3. スタッフアカウントと権限を設定する
+3. 16文字以上の合言葉をSecretとして登録する
 4. Firestore と Cloud Functions をデプロイする
 5. スマートフォンから注文テストを行う
 
@@ -197,7 +194,7 @@ npx firebase-tools deploy --project <PROJECT_ID>
 
 ## TODOリスト：公開までにやること
 
-画面と Firebase 連携のコードは実装済みですが、Firebase プロジェクトがまだないため、実際の注文受付・公開はこれからです。上から順に進めてください。
+FirebaseプロジェクトとHostingは設定済みです。合言葉ログインとFunctionsの公開、実注文の確認が残っています。上から順に進めてください。
 
 ### 実装済み
 
@@ -212,16 +209,13 @@ npx firebase-tools deploy --project <PROJECT_ID>
 
 ### これから行うこと
 
-1. [ ] Firebase Consoleでプロジェクトを作成し、Webアプリを登録する（プロジェクトオーナーによる操作が必要）。
-2. [ ] Webアプリの設定値を [`js/firebase-config.js`](./js/firebase-config.js) に記入する。
-3. [ ] Firebase Authenticationでメール/パスワード認証を有効にし、スタッフ用ユーザーを作る。
-4. [ ] Firestore Databaseを作成する。
-5. [ ] Cloud Functionsを使うためのBlaze料金プランを確認する。**従量課金のため、料金と支払い設定を確認・承認できる人が判断する。明示的な承認なしに変更しない。**
-6. [ ] READMEの「スタッフ権限を設定する」に従い、スタッフアカウントに権限を付ける。
-7. [ ] 「Hostingとバックエンドをデプロイする」のコマンドを実行し、Hosting・Functions・Firestoreルールを公開する。
-8. [ ] スタッフ画面へ初回ログインし、初期メニューが表示されることを確認する。
-9. [ ] スマートフォンからテスト注文し、注文番号・合言葉・在庫の減少・スタッフ画面への反映・注文状況の更新を確認する。
-10. [ ] 公開前に売り切れ時の注文制限、同時注文、スマートフォン表示、料金アラートなどを確認し、本番運用テストを行う。
+1. [x] Firebaseプロジェクト・Webアプリを作成し、設定を登録する。
+2. [x] Firebase Hostingへサイトを公開する。
+3. [ ] Blazeの料金と課金状況を確認し、Functions利用を有効にする。
+4. [ ] 16文字以上のスタッフ用合言葉をFirebase Secretとして登録する。
+5. [ ] Functions・Firestoreルール・Hostingをデプロイする。
+6. [ ] 事前確認ログインを一度だけ実行する（10分で自動失効。本番データを変更できるため注意）。
+7. [ ] 11月13日（日本時間）にスタッフログイン、注文・在庫・メニュー管理を確認する。
 
 ## TODOリスト（実行順）
 
@@ -235,16 +229,15 @@ npx firebase-tools deploy --project <PROJECT_ID>
 
 - [ ] Firebase Console でプロジェクトを作成する
 - [ ] Web アプリの設定値を `js/firebase-config.js` に入力する
-- [ ] Firebase Authentication でメール/パスワード認証を有効化する
+- [ ] Firebase Functions Secretに合言葉を登録する
 - [ ] Firestore Database を作成する
 - [ ] Blaze プランの利用有無と支払い承認を確認する
 
-### 3. スタッフ権限と公開
+### 3. 合言葉ログインと公開
 
-- [ ] スタッフ用アカウントを作成する
-- [ ] `functions/scripts/set-staff.js` を使って `staff: true` を付与する
+- [ ] Blaze課金を有効にし、Secret `STAFF_PASSPHRASE` を設定する
 - [ ] Firebase Hosting と Functions をデプロイする
-- [ ] 管理画面にログインできることを確認する
+- [ ] 事前確認ログインを一度だけ実施し、有効期限どおりに終了することを確認する
 
 ### 4. 運用テスト
 
@@ -287,39 +280,36 @@ Firebase連携コードとデプロイ設定を用意しています。実際の
 
 1. Firebase Consoleでプロジェクトを作成し、Webアプリを追加します。
 2. Webアプリの設定値を `js/firebase-config.js` にコピーします。Firebase Web APIキーはブラウザーに配布される公開設定値です。Admin SDKの秘密鍵はここやGitHubに置かないでください。
-3. Authenticationでメール/パスワードのログインを有効にし、スタッフのユーザーを作成します。
-4. Firestore Databaseを作成します。最初の商品カタログは、スタッフが管理画面へ初回ログインしたときに登録されます。
-5. Cloud FunctionsをデプロイするにはFirebaseプロジェクトをBlaze料金プランにする必要があります。利用量によって料金が発生するため、支払い設定を許可できる人が料金・無料枠を確認してから有効にしてください。
+3. Firestore Databaseを作成します。最初の商品カタログは、管理画面へ初回ログインしたときに登録されます。
+4. Cloud Functionsを使うためBlaze料金プランを設定します。利用量によって料金が発生する可能性があるため、料金・無料枠を確認してください。
+5. 16文字以上のスタッフ用合言葉を、Firebase Functions Secretとして登録します。CLIが値を求めたらローカルのターミナルに入力してください。値をコマンド引数・ソースコード・GitHub・チャットへ書かないでください。
 
-### 2. スタッフ権限を設定する
+### 2. 合言葉を安全に登録する
 
-管理画面にログインさせる前に、スタッフアカウントへ `staff: true` のCustom Claimを付けます。Google Cloud SDKをインストールし、Firebaseプロジェクトに対するFirebase Authentication管理権限を持つGoogleアカウントで次を実行します。
-
-```powershell
-npm install --prefix functions
-gcloud auth application-default login
-node .\functions\scripts\set-staff.js <PROJECT_ID> <スタッフのメールアドレス> grant
-```
-
-`<PROJECT_ID>` と `<スタッフのメールアドレス>` は実際の値に置き換えてください。権限を外す場合は最後の `grant` を `revoke` にします。Claimを変更した後はスタッフがいったんログアウトして、もう一度ログインしてください。ブラウザー側だけのデモコードによる認証は使用しません。
-
-### 3. Hostingとバックエンドをデプロイする
-
-Node.js 22とFirebase CLIを用意してから、プロジェクトのルートで実行します。
+次のコマンドを実行し、CLIから値を求められたら16文字以上の合言葉を入力します。合言葉をコマンド引数やチャット、ソースコードに書かないでください。
 
 ```powershell
-npx firebase-tools login
-npx firebase-tools deploy --project <PROJECT_ID>
+npx firebase-tools functions:secrets:set STAFF_PASSPHRASE --project cafe-website-4367f
 ```
 
-デプロイにはHostingサイト、Firestore Security Rules、Cloud Functionsが含まれます。公開URLはFirebase ConsoleのHosting画面で確認できます。`<PROJECT_ID>` は実際のFirebaseプロジェクトIDに置き換えてください。
+合言葉はチャットやソースコードに書かず、Firebase Secretとして保管してください。
+
+### 3. Functions・ルール・Hostingを公開する
+
+プロジェクトのルートで次を実行します。
+
+```powershell
+npx firebase-tools deploy --only functions,firestore:rules,hosting --project cafe-website-4367f
+```
+
+合言葉による通常ログインは**2026年11月13日 00:00から11月14日 00:00（日本時間）まで**有効です。それより前の事前確認ログインはプロジェクト全体で一度だけ利用でき、10分後に自動失効します。テスト中も本番Firestoreの商品・注文データを操作できるため、変更には注意してください。ログインは接続元ごとに15分間で最大5回までです。
 
 ### データの保護と動作
 
 - 商品メニューはFirestoreからリアルタイムに読み込みます。
 - 注文確定はCloud Functionsが価格と在庫をFirestoreトランザクションで再検証してから注文を保存します。ブラウザーから送られた価格・合計金額は利用しません。
 - お客さまの注文状況確認には注文番号に加え、注文時に発行する推測困難な確認トークンを使います。
-- 注文の閲覧、注文状況・在庫の変更はスタッフCustom Claimを持つアカウントに限定します。Firestoreクライアントからの直接書き込みはSecurity Rulesで拒否されます。
+- 注文の閲覧、注文状況・在庫の変更は期限付きスタッフCustom Claimを持つログインに限定します。Callable FunctionsとFirestore Security Rulesの両方で期限を検証し、Firestoreクライアントからの直接書き込みは拒否されます。
 - Firebase設定が未入力の間はメニューのプレビューのみ表示し、注文受付とスタッフログインは無効です。
 
 スタッフ管理画面の「商品・在庫」から商品名・説明・価格・絵文字・在庫を編集し、新しいメニューを追加できます。販売停止/再開は商品を削除せず表示状態を切り替えるため、過去の注文履歴も保持されます。追加・編集・販売状態の更新はスタッフ権限を検証するCloud Functions経由で行い、変更はFirestoreのリスナーを通じて注文画面へ反映されます。
@@ -327,7 +317,7 @@ npx firebase-tools deploy --project <PROJECT_ID>
 ### 困ったときは
 
 - **「Firebase未設定のプレビュー」と表示される：** `js/firebase-config.js` の `YOUR_...` を実際のFirebase Webアプリ設定値に置き換えてください。設定後はFirebase Hostingへ再デプロイします。
-- **スタッフがログインできない：** Firebase Authenticationにメール/パスワードのユーザーが存在するか、`staff: true` の権限を付けたか確認します。権限を付け直した後は一度ログアウトし、再ログインします。
-- **メニューが出てこない：** Firestoreを作成し、スタッフ権限のあるユーザーで管理画面に初回ログインします。最初の商品はそのとき登録されます。
+- **スタッフがログインできない：** `STAFF_PASSPHRASE` Secretが16文字以上で設定されているか、FunctionsとFirestoreルールがデプロイ済みか確認します。事前確認ログインは一度限りで、通常ログインは2026年11月13日（日本時間）だけ利用できます。
+- **メニューが出てこない：** Firestoreを作成し、合言葉で管理画面に初回ログインします。最初の商品はそのとき登録されます。
 - **注文できない／在庫不足と表示される：** 商品の在庫が残っているか確認します。Cloud Functionsがデプロイ済みで、FirebaseプロジェクトのBlazeプランが有効かも確認してください。
 - **画面の変更が反映されない：** 管理画面と注文画面の両方を再読み込みします。通信エラーが続く場合はFirebase ConsoleのFunctions、Firestore、Authenticationの状態を確認します。
