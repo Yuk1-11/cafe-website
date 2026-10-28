@@ -256,68 +256,139 @@ FirebaseプロジェクトとHostingは設定済みです。合言葉ログイ�
 - [ ] ログインユーザーと管理者ユーザーの役割分担を確認する
 - [ ] 文化祭当日用の手順書を用意する
 
-## 📝 備考
+## AWS 版再設計方針（Firebase から切り替える場合）
 
-本プロジェクトは文化祭での利用を目的として開発しています。
+Firebase の課金が必要なため、AWS Academy の無料枠を活用して、費用を抑えた構成に切り替える方向を検討しています。実運用では「無駄な課金を避け、文化祭当日に確実に動くこと」を最優先にします。
 
-開発状況や必要な機能に応じて、仕様を随時更新します。
+### 目標
 
-## 現在の実装について
+- Firebase の月額・従量課金を避ける
+- AWS Academy の無料枠を活用する
+- 文化祭当日の運用を安全に行う
+- チーム内で実装と運用の責任を分担しやすくする
 
-Firebase連携コードとデプロイ設定を用意しています。実際の注文受付を有効にするには、`js/firebase-config.js` にプロジェクトのWeb設定を入力し、Firebaseの各サービスを有効化してデプロイしてください。Firebase設定がない場合はメニューのプレビューだけが表示されます。
+### 推奨構成
 
-注文カートと注文状況確認用トークンはブラウザーのストレージに一時保存し、商品・在庫・注文はCloud Firestoreで管理します。
+- フロントエンド: HTML / CSS / JavaScript（そのまま使用）
+- 配信: Amazon S3 + CloudFront
+- API: EC2 + Apache + PHP
+- DB: MariaDB
+- 認証: PHP セッションベースの管理者ログイン
+- 注文受け取り: 注文番号 + ランダムな5桁合言葉で管理
 
-## ドットカフェのデザイン
+### 変更理由
 
-水玉模様とレトロポップな色使いをテーマに、文化祭で立ち寄りたくなるカフェの注文ページにしています。メニューはドットラテ、しゅわしゅわソーダ、水玉クリームケーキ、ドットクッキーです。
+- Firebase は Cloud Functions と Blaze プランが必要で、料金が発生しやすい
+- AWS Academy の無料枠で EC2 と MariaDB を使う方が、短期イベント向けにコストを抑えやすい
+- PHP と MariaDB は、学校の開発環境と相性がよく、チームで運用しやすい
 
-## Firebaseの設定と公開
+### 変更対象
 
-このサイトはFirebase Hosting、Cloud Firestore、Firebase Authentication、Callable Cloud Functionsを使います。Firebaseプロジェクトごとに必要な設定を行ってからデプロイしてください。
+- `js/firebase.js` を `js/api.js` に置き換える
+- Firebase Cloud Functions の役割を PHP API に置き換える
+- Firebase Authentication を PHP セッション認証に置き換える
+- Firestore を MariaDB に置き換える
+- `functions/` 配下の処理を EC2 上の PHP API に移行する
 
-### 1. FirebaseプロジェクトとWebアプリを設定する
+## AWS版 TODOリスト
 
-1. Firebase Consoleでプロジェクトを作成し、Webアプリを追加します。
-2. Webアプリの設定値を `js/firebase-config.js` にコピーします。Firebase Web APIキーはブラウザーに配布される公開設定値です。Admin SDKの秘密鍵はここやGitHubに置かないでください。
-3. Firestore Databaseを作成します。最初の商品カタログは、管理画面へ初回ログインしたときに登録されます。
-4. Cloud Functionsを使うためBlaze料金プランを設定します。利用量によって料金が発生する可能性があるため、料金・無料枠を確認してください。
-5. 16文字以上のスタッフ用合言葉を、Firebase Functions Secretとして登録します。CLIが値を求めたらローカルのターミナルに入力してください。値をコマンド引数・ソースコード・GitHub・チャットへ書かないでください。
+### 1. 要件整理
 
-### 2. 合言葉を安全に登録する
+- [ ] 「店内注文」と「持ち帰り注文」の扱いを決める
+- [ ] 注文ステータスの流れを決める（受付済み → 調理中 → 受け渡し待ち → 受け渡し済み）
+- [ ] 合言葉の生成条件を決める（例: A7K2P）
+- [ ] 管理者・スタッフの権限を分ける
+- [ ] PHP セッション認証のルールを決める
 
-次のコマンドを実行し、CLIから値を求められたら16文字以上の合言葉を入力します。合言葉をコマンド引数やチャット、ソースコードに書かないでください。
+### 2. AWS 環境の準備
 
-```powershell
-npx firebase-tools functions:secrets:set STAFF_PASSPHRASE --project cafe-website-4367f
-```
+- [ ] AWS Academy の利用条件と無料枠を確認する
+- [ ] EC2 インスタンスを作成する
+- [ ] セキュリティグループを設定する（80 / 443 / 22）
+- [ ] Apache をインストールする
+- [ ] PHP をインストールする
+- [ ] MariaDB をインストールする
+- [ ] PHP から MariaDB に接続できることを確認する
 
-合言葉はチャットやソースコードに書かず、Firebase Secretとして保管してください。
+### 3. DB 設計
 
-### 3. Functions・ルール・Hostingを公開する
+- [ ] `products` テーブルを設計する
+  - `id`, `name`, `description`, `price`, `emoji`, `stock`, `active`, `sort_order`
+- [ ] `orders` テーブルを設計する
+  - `id`, `order_number`, `pickup_code`, `total`, `status`, `created_at`, `updated_at`
+- [ ] `order_items` テーブルを設計する
+  - `id`, `order_id`, `product_id`, `product_name`, `quantity`, `price`
+- [ ] `users` テーブルを設計する
+  - `id`, `email`, `password_hash`, `role`
+- [ ] `order_counters` テーブルを設計する
+  - `date`, `count`
 
-プロジェクトのルートで次を実行します。
+### 4. PHP API 設計
 
-```powershell
-npx firebase-tools deploy --only functions,firestore:rules,hosting --project cafe-website-4367f
-```
+- [ ] `GET /api/products.php` を作る
+- [ ] `POST /api/orders.php` を作る
+- [ ] `GET /api/orders.php?order_number=...&pickup_code=...` を作る
+- [ ] `POST /api/orders/status.php` を作る
+- [ ] `POST /api/products.php` を作る
+- [ ] `PUT /api/products.php` を作る
+- [ ] `POST /api/login.php` を作る
+- [ ] `POST /api/logout.php` を作る
 
-合言葉による通常ログインは**2026年11月13日 00:00から11月14日 00:00（日本時間）まで**有効です。それより前の事前確認ログインはプロジェクト全体で一度だけ利用でき、10分後に自動失効します。テスト中も本番Firestoreの商品・注文データを操作できるため、変更には注意してください。ログインは接続元ごとに15分間で最大5回までです。
+### 5. フロントエンドの再設計
 
-### データの保護と動作
+- [ ] `js/firebase.js` を `js/api.js` に置き換える
+- [ ] `fetch()` で PHP API を叩くように変更する
+- [ ] 注文完了時に合言葉を表示する
+- [ ] お客さま向け注文確認画面を修正する
+- [ ] 管理画面に注文一覧と在庫更新機能を追加する
+- [ ] ログイン画面を PHP セッション認証前提に変更する
 
-- 商品メニューはFirestoreからリアルタイムに読み込みます。
-- 注文確定はCloud Functionsが価格と在庫をFirestoreトランザクションで再検証してから注文を保存します。ブラウザーから送られた価格・合計金額は利用しません。
-- お客さまの注文状況確認には注文番号に加え、注文時に発行する推測困難な確認トークンを使います。
-- 注文の閲覧、注文状況・在庫の変更は期限付きスタッフCustom Claimを持つログインに限定します。Callable FunctionsとFirestore Security Rulesの両方で期限を検証し、Firestoreクライアントからの直接書き込みは拒否されます。
-- Firebase設定が未入力の間はメニューのプレビューのみ表示し、注文受付とスタッフログインは無効です。
+### 6. セキュリティ対策
 
-スタッフ管理画面の「商品・在庫」から商品名・説明・価格・絵文字・在庫を編集し、新しいメニューを追加できます。販売停止/再開は商品を削除せず表示状態を切り替えるため、過去の注文履歴も保持されます。追加・編集・販売状態の更新はスタッフ権限を検証するCloud Functions経由で行い、変更はFirestoreのリスナーを通じて注文画面へ反映されます。
+- [ ] SQL Injection を防ぐ（Prepared Statement を使用）
+- [ ] パスワードは `password_hash()` で保存する
+- [ ] 管理画面はログイン必須にする
+- [ ] CSRF 対策を入れる
+- [ ] 在庫確認と注文確定はサーバー側で行う
+- [ ] 合言葉はハッシュ化して保存する
 
-### 困ったときは
+### 7. 受け渡し機能の実装
 
-- **「Firebase未設定のプレビュー」と表示される：** `js/firebase-config.js` の `YOUR_...` を実際のFirebase Webアプリ設定値に置き換えてください。設定後はFirebase Hostingへ再デプロイします。
-- **スタッフがログインできない：** `STAFF_PASSPHRASE` Secretが16文字以上で設定されているか、FunctionsとFirestoreルールがデプロイ済みか確認します。事前確認ログインは一度限りで、通常ログインは2026年11月13日（日本時間）だけ利用できます。
-- **メニューが出てこない：** Firestoreを作成し、合言葉で管理画面に初回ログインします。最初の商品はそのとき登録されます。
-- **注文できない／在庫不足と表示される：** 商品の在庫が残っているか確認します。Cloud Functionsがデプロイ済みで、FirebaseプロジェクトのBlazeプランが有効かも確認してください。
-- **画面の変更が反映されない：** 管理画面と注文画面の両方を再読み込みします。通信エラーが続く場合はFirebase ConsoleのFunctions、Firestore、Authenticationの状態を確認します。
+- [ ] スタッフ画面に合言葉表示を追加する
+- [ ] 5桁英数字の合言葉を生成する
+- [ ] 注文完了画面に合言葉を表示する
+- [ ] 「受け渡し済み」にしたら履歴へ残す
+- [ ] 合言葉で受け取り確認を行えるようにする
+
+### 8. テスト
+
+- [ ] 商品一覧が表示される
+- [ ] 注文が作成できる
+- [ ] 在庫が減る
+- [ ] 合言葉が表示される
+- [ ] スタッフが注文状況を更新できる
+- [ ] 売り切れ商品は注文できない
+- [ ] 同時注文で在庫が崩れないか確認する
+
+### 9. AWS への公開準備
+
+- [ ] EC2 で Apache と PHP が動くことを確認する
+- [ ] MariaDB に初期データを投入する
+- [ ] 管理者ユーザーを作成する
+- [ ] HTTPS を設定する
+- [ ] 公開URLを確認する
+- [ ] スマホで注文テストをする
+
+### 10. 本番前チェック
+
+- [ ] AWS の無料枠と費用を確認する
+- [ ] バックアップ方法を決める
+- [ ] スタッフ向け操作説明書を準備する
+- [ ] 文化祭当日用の手順書を作成する
+- [ ] 緊急時の停止手順を用意する
+
+## 変更の方針
+
+現在の Firebase ベースの設計は、課金の問題があるため、AWS Academy を使う前提では再設計が必要です。実運用の最優先事項は、無駄な費用を出さず、文化祭当日に確実に動くことです。
+
+この README には、今後の作業をチームで共有できるよう、AWS 版の方針と TODO を明記しています。
