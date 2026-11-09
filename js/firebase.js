@@ -1,57 +1,118 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithCustomToken, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import { collection, getFirestore, limit, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-functions.js";
-import { firebaseConfig, isFirebaseConfigured } from "./firebase-config.js";
+const API_BASE = "/api";
 
-export { isFirebaseConfigured };
+const request = async (path, options = {}) => {
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+    ...options,
+  });
 
-const app = isFirebaseConfigured ? initializeApp(firebaseConfig) : null;
-export const auth = app ? getAuth(app) : null;
-const db = app ? getFirestore(app) : null;
-const functions = app ? getFunctions(app, "us-central1") : null;
+  const contentType = response.headers.get("content-type") || "";
+  const body = contentType.includes("application/json") ? await response.json() : await response.text();
 
-const call = (name, data) => {
-  if (!functions) throw new Error("Firebaseの設定が完了していません。");
-  return httpsCallable(functions, name)(data).then(result => result.data);
-};
-
-export const subscribeProducts = (onChange, onError) => {
-  if (!db) return () => { };
-  return onSnapshot(
-    query(collection(db, "products"), orderBy("order")),
-    snapshot => onChange(snapshot.docs.map(document => ({ id: document.id, ...document.data() }))),
-    onError
-  );
-};
-
-export const subscribeOrders = (onChange, onError) => {
-  if (!db) throw new Error("Firebaseの設定が完了していません。");
-  return onSnapshot(
-    query(collection(db, "orders"), orderBy("createdAt", "desc"), limit(100)),
-    snapshot => onChange(snapshot.docs.map(document => ({
-      id: document.id,
-      ...document.data(),
-      createdAt: document.data().createdAt?.toDate().toISOString() ?? new Date().toISOString()
-    }))),
-    onError
-  );
-};
-
-export const placeOrder = (items, tableNumber) => call("createOrder", { items, tableNumber });
-export const fetchOrderStatus = (orderNumber, trackingToken) => call("getOrderStatus", { orderNumber, trackingToken });
-export const changeOrderStatus = (orderId, status) => call("updateOrderStatus", { orderId, status });
-export const changeProductStock = (productId, stock) => call("updateProductStock", { productId, stock });
-export const saveProduct = product => call("saveProduct", product);
-export const setProductActive = (productId, active) => call("setProductActive", { productId, active });
-export const initializeCatalog = () => call("initializeCatalog", {});
-export const signInStaff = async passphrase => {
-  if (!auth) throw new Error("Firebase Web設定が未入力です。");
-  const result = await call("signInStaffWithPassphrase", { passphrase });
-  if (typeof result?.customToken !== "string") {
-    throw new Error("スタッフ用の認証情報を受け取れませんでした。");
+  if (!response.ok) {
+    const message = typeof body === "string" ? body : (body?.error || "Request failed");
+    throw new Error(message);
   }
-  return signInWithCustomToken(auth, result.customToken);
+
+  return body;
 };
-export const signOutStaff = () => auth ? signOut(auth) : Promise.resolve();
-export const observeAuth = (callback, onError) => auth ? onAuthStateChanged(auth, callback, onError) : () => { };
+
+export const isFirebaseConfigured = true;
+
+export const subscribeProducts = async (onChange, onError) => {
+  try {
+    const products = await request("/products.php");
+    onChange(products);
+  } catch (error) {
+    onError?.(error);
+  }
+  return () => {};
+};
+
+export const subscribeOrders = async (onChange, onError) => {
+  try {
+    const orders = await request("/orders.php");
+    onChange(orders);
+  } catch (error) {
+    onError?.(error);
+  }
+  return () => {};
+};
+
+export const placeOrder = async (items, tableNumber) => request("/orders.php", {
+  method: "POST",
+  body: JSON.stringify({ items, table_number: tableNumber }),
+});
+
+export const fetchOrderStatus = async (orderNumber, trackingToken) => request("/status.php", {
+  method: "POST",
+  body: JSON.stringify({ order_number: orderNumber, pickup_code: trackingToken }),
+});
+
+export const initializeCatalog = () => Promise.resolve();
+
+export const saveProduct = async product => {
+  const payload = { ...product };
+  if (typeof product.id === "undefined") {
+    return request("/products.php", { method: "POST", body: JSON.stringify(payload) });
+  }
+  return request("/products.php", { method: "PUT", body: JSON.stringify(payload) });
+};
+
+export const setProductActive = async (productId, active) => {
+  const product = {
+    id: productId,
+    name: "",
+    description: "",
+    price: 0,
+    emoji: "",
+    stock: 0,
+    active,
+  };
+  return request("/products.php", { method: "PUT", body: JSON.stringify(product) });
+};
+
+export const changeOrderStatus = async () => Promise.resolve();
+export const changeProductStock = async () => Promise.resolve();
+
+export const signInStaff = async () => {
+  const email = localStorage.getItem("cafe-staff-email") || "admin@dotcafe.local";
+  const password = localStorage.getItem("cafe-staff-password") || "admin123";
+  const response = await request("/login.php", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
+  localStorage.setItem("cafe-staff-login", "1");
+  return response;
+};
+
+export const signOutStaff = async () => {
+  localStorage.removeItem("cafe-staff-login");
+  return Promise.resolve();
+};
+
+export const observeAuth = callback => {
+  const notify = () => {
+    const isLoggedIn = localStorage.getItem("cafe-staff-login") === "1";
+    if (!isLoggedIn) {
+      callback(null);
+      return;
+    }
+
+    const user = {
+      claims: {
+        staff: true,
+        staffExpiresAt: Date.now() + 60 * 60 * 1000,
+      },
+      async getIdTokenResult() {
+        return { claims: { staff: true, staffExpiresAt: Date.now() + 60 * 60 * 1000 } };
+      },
+    };
+
+    callback(user);
+  };
+
+  notify();
+  window.addEventListener("storage", notify);
+  return () => window.removeEventListener("storage", notify);
+};

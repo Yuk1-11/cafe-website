@@ -1,54 +1,717 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="ドットカフェの文化祭限定メニューをスマホからかんたん注文。">
-  <meta name="theme-color" content="#fff8e9">
-  <title>ドットカフェ | 文化祭のちいさな喫茶店</title>
-  <link rel="stylesheet" href="css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Dot Cafe | モバイルオーダー</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,600;1,400&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-color: #faf9f6;
+      --card-bg: #ffffff;
+      --primary-black: #222222;
+      --sub-gray: #757575;
+      --light-gray: #f0f0f0;
+      --border-color: #e5e5e5;
+      --heart-color: #e88a99;
+      --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.05);
+      --shadow-button: 0 4px 12px rgba(34, 34, 34, 0.2);
+      --radius-sm: 10px;
+      --radius-md: 18px;
+      --radius-lg: 28px;
+      --font-base: 'Zen Maru Gothic', sans-serif;
+      --font-logo: 'Great Vibes', cursive;
+      --font-serif: 'Playfair Display', serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-base);
+      background-color: #f2f2f2;
+      color: var(--primary-black);
+      line-height: 1.5;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 440px;
+      background-color: var(--bg-color);
+      background-image: radial-gradient(#dfdfdf 1.2px, transparent 1.2px);
+      background-size: 18px 18px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.08);
+      padding-bottom: 90px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: rgba(250, 249, 246, 0.92);
+      backdrop-filter: blur(8px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+    }
+
+    .header-logo {
+      font-family: var(--font-logo);
+      font-size: 2.2rem;
+      color: var(--primary-black);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .header-ribbon {
+      width: 22px;
+      height: 22px;
+      fill: var(--primary-black);
+    }
+
+    .menu-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding: 6px;
+    }
+    .menu-btn span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background-color: var(--primary-black);
+      border-radius: 2px;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 28px 20px 24px;
+      position: relative;
+    }
+
+    .hero-sparkle {
+      position: absolute;
+      fill: var(--primary-black);
+      opacity: 0.25;
+    }
+    .sparkle-1 { top: 15px; left: 35px; width: 18px; }
+    .sparkle-2 { bottom: 65px; right: 30px; width: 14px; }
+
+    .hero-brand {
+      font-family: var(--font-logo);
+      font-size: 3.8rem;
+      line-height: 1;
+      margin-bottom: 6px;
+      color: var(--primary-black);
+    }
+
+    .hero-subtitle {
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      color: var(--sub-gray);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .hero-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background-color: var(--primary-black);
+      color: #ffffff;
+      padding: 13px 32px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border-radius: var(--radius-lg);
+      text-decoration: none;
+      box-shadow: var(--shadow-button);
+      transition: transform 0.15s ease, background-color 0.2s;
+    }
+    .hero-btn:active {
+      transform: scale(0.97);
+    }
+
+    .category-section {
+      padding: 0 16px 16px;
+    }
+
+    .category-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .category-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .category-tab {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--sub-gray);
+      padding: 9px 20px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .category-tab.active {
+      background: var(--primary-black);
+      color: #ffffff;
+      border-color: var(--primary-black);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .menu-container {
+      padding: 0 16px;
+      flex: 1;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+
+    .item-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .item-card:active {
+      transform: scale(0.98);
+    }
+
+    .item-image-wrapper {
+      width: 100%;
+      padding-top: 90%;
+      position: relative;
+      background-color: #f7f7f7;
+    }
+
+    .item-image {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .fav-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(4px);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    .fav-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: var(--primary-black);
+      stroke-width: 2;
+      transition: fill 0.2s, stroke 0.2s;
+    }
+
+    .fav-btn.active svg {
+      fill: var(--heart-color);
+      stroke: var(--heart-color);
+    }
+
+    .sold-out-badge {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .item-info {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .item-name {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--primary-black);
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+
+    .item-price {
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--primary-black);
+      margin-top: auto;
+    }
+
+    .order-action-bar {
+      padding: 16px;
+      position: sticky;
+      bottom: 72px;
+      z-index: 90;
+    }
+
+    .order-btn {
+      width: 100%;
+      background: var(--primary-black);
+      color: #ffffff;
+      border: none;
+      padding: 15px 20px;
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    .order-btn:active {
+      transform: scale(0.98);
+    }
+
+    .order-btn-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .cart-badge {
+      background: #ffffff;
+      color: var(--primary-black);
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      max-width: 440px;
+      background: #ffffff;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+      z-index: 100;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      text-decoration: none;
+      color: var(--sub-gray);
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: none;
+      border: none;
+      cursor: pointer;
+      width: 25%;
+    }
+
+    .nav-item svg {
+      width: 22px;
+      height: 22px;
+      stroke: var(--sub-gray);
+      fill: none;
+      stroke-width: 2;
+    }
+
+    .nav-item.active {
+      color: var(--primary-black);
+    }
+
+    .nav-item.active svg {
+      stroke: var(--primary-black);
+      fill: rgba(0, 0, 0, 0.05);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-sheet {
+      width: 100%;
+      max-width: 440px;
+      background: #ffffff;
+      border-radius: 24px 24px 0 0;
+      padding: 24px 20px calc(24px + env(safe-area-inset-bottom));
+      animation: slideUp 0.25s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .quantity-control {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .qty-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--border-color);
+      background: #fff;
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .qty-display {
+      font-size: 1.3rem;
+      font-weight: 700;
+      min-width: 30px;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
-  <header class="site-header">
-    <a class="brand" href="index.html" aria-label="ドットカフェ ホーム"><span class="brand-mark" aria-hidden="true">●</span><span>ドットカフェ<small>DOT CAFE / SCHOOL FESTIVAL</small></span></a>
-    <a class="header-link" href="admin.html">スタッフの方はこちら <span aria-hidden="true">↗</span></a>
-  </header>
-  <main class="customer-page">
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-copy">
-        <p class="eyebrow"><span class="eyebrow-dot"></span> SCHOOL FESTIVAL CAFE</p>
-        <h1 id="hero-title">ひとくちごとに、<br><span>しあわせ</span>ドット。</h1>
-        <p class="hero-description">小さなドットに、ときめきをひとつぶ。<br>文化祭だけのメニューをお楽しみください。</p>
-        <a class="hero-cta" href="#menu">メニューを見にいく <span aria-hidden="true">↓</span></a>
-        <button id="resume-order" class="order-status-link" type="button" hidden>ご注文の状況を確認する →</button>
-        <p class="hero-note"><span aria-hidden="true">✳</span> スマホで注文、できたら番号でお呼びします</p>
+  <div class="app-container">
+    <header class="header">
+      <a href="#" class="header-logo">
+        <svg class="header-ribbon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 7c-2-3-6-3-6 0 0 2 3 3 6 5 3-2 6-3 6-5 0-3-4-3-6 0z"></path>
+          <path d="M9 11l-4 7c-.5.8.3 1.7 1.2 1.3L11 17"></path>
+          <path d="M15 11l4 7c.5.8-.3 1.7-1.2 1.3L13 17"></path>
+        </svg>
+        Dot Cafe
+      </a>
+      <button class="menu-btn" aria-label="Menu" type="button" onclick="alert('メニューを開きます')">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </header>
+
+    <section class="hero">
+      <svg class="hero-sparkle sparkle-1" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 0L14 9L23 11L14 13L12 22L10 13L1 11L10 9Z"></path>
+      </svg>
+      <svg class="hero-sparkle sparkle-2" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 0L14 9L23 11L14 13L12 22L10 13L1 11L10 9Z"></path>
+      </svg>
+
+      <h1 class="hero-brand">Dot Cafe</h1>
+      <p class="hero-subtitle">
+        <span>♥</span> 文化祭スペシャルカフェ <span>♥</span>
+      </p>
+      <a href="#menu-area" class="hero-btn">
+        モバイルオーダーはこちら
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </a>
+    </section>
+
+    <nav class="category-section" id="menu-area" aria-label="メニューカテゴリ">
+      <div class="category-scroll">
+        <button class="category-tab active" type="button" onclick="filterCategory('all', this)">おすすめ</button>
+        <button class="category-tab" type="button" onclick="filterCategory('sweets', this)">スイーツ</button>
+        <button class="category-tab" type="button" onclick="filterCategory('drink', this)">ドリンク</button>
+        <button class="category-tab" type="button" onclick="filterCategory('food', this)">フード</button>
       </div>
-      <div class="hero-art" aria-label="ドットカフェのコーヒーとお菓子" role="img">
-        <span class="art-spark spark-one" aria-hidden="true">✳</span>
-        <span class="art-spark spark-two" aria-hidden="true">✳</span>
-        <span class="art-label">TODAY'S<br>HAPPINESS</span>
-        <div class="art-plate"><div class="art-cup"><span>☕</span></div><span class="art-cookie">●</span></div>
-        <span class="art-dot dot-one"></span><span class="art-dot dot-two"></span><span class="art-dot dot-three"></span>
-        <span class="art-caption">made with little dots & love</span>
+    </nav>
+
+    <main class="menu-container">
+      <h2 class="section-title">
+        <span>Recommended</span>
+      </h2>
+      <div class="menu-grid" id="menuGrid"></div>
+    </main>
+
+    <div class="order-action-bar">
+      <button class="order-btn" type="button" onclick="openCart()">
+        <div class="order-btn-left">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="9" cy="21" r="1"></circle>
+            <circle cx="20" cy="21" r="1"></circle>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+          </svg>
+          <span>注文を確認する</span>
+        </div>
+        <span class="cart-badge" id="cartCountBadge">0点</span>
+      </button>
+    </div>
+
+    <nav class="bottom-nav" aria-label="下部ナビゲーション">
+      <button class="nav-item active" type="button" onclick="switchNav('home', this)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <span>ホーム</span>
+      </button>
+      <button class="nav-item" type="button" onclick="switchNav('menu', this)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+        <span>メニュー</span>
+      </button>
+      <button class="nav-item" type="button" onclick="switchNav('cart', this)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+        <span>カート</span>
+      </button>
+      <button class="nav-item" type="button" onclick="switchNav('mypage', this)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span>マイページ</span>
+      </button>
+    </nav>
+  </div>
+
+  <div class="modal-overlay" id="productModal" aria-hidden="true">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3 id="modalItemName" style="font-size:1.1rem; font-weight:700;">商品名</h3>
+        <button class="modal-close" type="button" onclick="closeModal()" aria-label="閉じる">&times;</button>
       </div>
-    </section>
-    <section id="tableInfo" class="table-info" aria-live="polite">
-      <p>ご利用中の卓</p>
-      <h2 id="tableNumber">卓情報を確認中...</h2>
-      <p id="tableMessage"></p>
-    </section>
-    <section id="menu" class="menu-section" aria-labelledby="menu-title">
-      <div class="section-heading"><div><p class="eyebrow">A LITTLE TREAT FOR YOU</p><h2 id="menu-title">カフェメニュー <span class="heading-dot">●</span></h2><p class="section-description">お気に入りを見つけて、カートに入れてね。</p></div><span id="cart-count" class="cart-count">0点</span></div>
-      <p id="backend-message" class="backend-message" role="status" hidden></p>
-      <div id="menu-list" class="menu-grid"></div>
-    </section>
-    <section class="order-guide" aria-label="ご注文の流れ"><span class="guide-icon">01</span><p><strong>スマホで注文</strong><small>メニューを選んで注文</small></p><span class="guide-arrow" aria-hidden="true">→</span><span class="guide-icon">02</span><p><strong>番号をチェック</strong><small>できあがったらお呼びします</small></p><span class="guide-dot" aria-hidden="true">●</span></section>
-  </main>
-  <footer class="site-footer"><a class="footer-brand" href="index.html">● DOT CAFE</a><span>文化祭の思い出に、甘いひと休み。</span><span>MADE FOR SCHOOL FESTIVAL</span></footer>
-  <button id="cart-button" class="cart-button" type="button" aria-label="カートを開く"><span class="cart-icon" aria-hidden="true">＋</span><span>カートを見る</span><strong id="cart-total">¥0</strong></button>
-  <dialog id="cart-dialog" class="modal"><div class="modal-content"><div class="modal-header"><div><p class="eyebrow">YOUR ORDER</p><h2>カートの中身</h2></div><button class="icon-button" data-close="cart-dialog" aria-label="閉じる">×</button></div><div id="cart-items"></div><div class="total-row"><span>お会計</span><strong id="dialog-total">¥0</strong></div><button id="checkout-button" class="primary-button" type="button">この内容で注文する <span aria-hidden="true">→</span></button></div></dialog>
-  <dialog id="status-dialog" class="modal"><div class="modal-content status-content"><button class="icon-button" data-close="status-dialog" aria-label="閉じる">×</button><div id="status-content"></div><button id="check-order-status" class="secondary-button" type="button" hidden>注文状況を確認する</button><p id="order-status-message" class="form-error" role="status"></p></div></dialog>
-  <script type="module" src="js/menu.js"></script>
-  <script type="module" src="js/order.js"></script>
+      <p id="modalItemPrice" style="font-family:var(--font-serif); font-size:1.2rem; font-weight:700;"></p>
+
+      <div class="quantity-control">
+        <button class="qty-btn" type="button" onclick="changeQuantity(-1)">−</button>
+        <span class="qty-display" id="modalQty">1</span>
+        <button class="qty-btn" type="button" onclick="changeQuantity(1)">＋</button>
+      </div>
+
+      <button class="hero-btn" type="button" style="width:100%; border:none; cursor:pointer;" onclick="confirmAddToCart()">
+        カートに追加する
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const products = [
+      { id: 1, name: 'サクサクメロンパン', category: 'sweets', price: 250, image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80', soldOut: false },
+      { id: 2, name: 'フォンダンショコラ', category: 'sweets', price: 250, image: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=800&q=80', soldOut: false },
+      { id: 3, name: 'ミニパニーニ', category: 'food', price: 250, image: 'https://images.unsplash.com/photo-1553909489-cd47e0ef937f?auto=format&fit=crop&w=800&q=80', soldOut: false },
+      { id: 4, name: '塩パン', category: 'food', price: 250, image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80', soldOut: false },
+      { id: 5, name: 'ジンジャエール', category: 'drink', price: 0, image: 'https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=800&q=80', soldOut: false },
+      { id: 6, name: 'オレンジジュース', category: 'drink', price: 0, image: 'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?auto=format&fit=crop&w=800&q=80', soldOut: false },
+      { id: 7, name: 'スプライト', category: 'drink', price: 0, image: 'https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=800&q=80', soldOut: false }
+    ];
+
+    let cart = [];
+    let selectedItem = null;
+    let modalQuantity = 1;
+    let favorites = new Set();
+
+    function formatPrice(value) {
+      return value > 0 ? `¥${value.toLocaleString()}` : '未定';
+    }
+
+    function renderProducts(filter = 'all') {
+      const grid = document.getElementById('menuGrid');
+      grid.innerHTML = '';
+
+      const filtered = filter === 'all' ? products : products.filter(p => p.category === filter);
+
+      filtered.forEach(p => {
+        const isFav = favorites.has(p.id);
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        card.onclick = (e) => {
+          if (!p.soldOut && !e.target.closest('.fav-btn')) {
+            openProductModal(p);
+          }
+        };
+
+        card.innerHTML = `
+          <div class="item-image-wrapper">
+            <img src="${p.image}" alt="${p.name}" class="item-image" loading="lazy">
+            <button class="fav-btn ${isFav ? 'active' : ''}" type="button" onclick="toggleFav(event, ${p.id})" aria-label="${p.name}をお気に入りに追加">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg>
+            </button>
+            ${p.soldOut ? '<div class="sold-out-badge">SOLD OUT</div>' : ''}
+          </div>
+          <div class="item-info">
+            <h3 class="item-name">${p.name}</h3>
+            <p class="item-price">${formatPrice(p.price)}</p>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function filterCategory(category, tabBtn) {
+      document.querySelectorAll('.category-tab').forEach(b => b.classList.remove('active'));
+      tabBtn.classList.add('active');
+      renderProducts(category);
+    }
+
+    function toggleFav(e, id) {
+      e.stopPropagation();
+      if (favorites.has(id)) {
+        favorites.delete(id);
+      } else {
+        favorites.add(id);
+      }
+      e.currentTarget.classList.toggle('active');
+    }
+
+    function openProductModal(item) {
+      selectedItem = item;
+      modalQuantity = 1;
+      document.getElementById('modalItemName').textContent = item.name;
+      document.getElementById('modalItemPrice').textContent = formatPrice(item.price);
+      document.getElementById('modalQty').textContent = modalQuantity;
+      const modal = document.getElementById('productModal');
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('productModal');
+      modal.classList.remove('active');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    function changeQuantity(delta) {
+      modalQuantity = Math.max(1, modalQuantity + delta);
+      document.getElementById('modalQty').textContent = modalQuantity;
+    }
+
+    function confirmAddToCart() {
+      if (!selectedItem) return;
+
+      const existing = cart.find(c => c.id === selectedItem.id);
+      if (existing) {
+        existing.quantity += modalQuantity;
+      } else {
+        cart.push({ ...selectedItem, quantity: modalQuantity });
+      }
+
+      updateCartBadge();
+      closeModal();
+    }
+
+    function updateCartBadge() {
+      const totalCount = cart.reduce((acc, item) => acc + item.quantity, 0);
+      document.getElementById('cartCountBadge').textContent = `${totalCount}点`;
+    }
+
+    function openCart() {
+      if (cart.length === 0) {
+        alert('カートは空です');
+        return;
+      }
+      const summary = cart.map(i => `${i.name} × ${i.quantity}`).join('\n');
+      alert(`【現在のカート内】\n${summary}\n\n注文確認画面へ遷移します。`);
+    }
+
+    function switchNav(type, btn) {
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderProducts('all');
+      document.getElementById('productModal').addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) closeModal();
+      });
+    });
+  </script>
 </body>
 </html>

@@ -2,7 +2,7 @@ import {
   changeOrderStatus,
   changeProductStock,
   initializeCatalog,
-  isFirebaseConfigured,
+  isApiConfigured,
   observeAuth,
   saveProduct,
   setProductActive,
@@ -10,7 +10,7 @@ import {
   signOutStaff,
   subscribeOrders,
   subscribeProducts
-} from "./firebase.js";
+} from "./api.js";
 import { escapeHtml, yen } from "./store.js";
 
 const loginPanel = document.querySelector("#login-panel");
@@ -161,8 +161,8 @@ if (loginPanel) {
     }[tab.dataset.tab];
   });
 
-  if (!isFirebaseConfigured) {
-    loginError.textContent = "Firebase Web設定をjs/firebase-config.jsに入力してください。";
+  if (!isApiConfigured) {
+    loginError.textContent = "APIサーバーの設定を確認してください。";
     document.querySelector("#login-form").querySelectorAll("input, button").forEach(element => { element.disabled = true; });
   } else {
     let staffExpiryTimer = null;

@@ -1,8 +1,11 @@
 export const DEFAULT_PRODUCTS = [
-  { id: "coffee", name: "ドットラテ", description: "まろやかミルクと香ばしいコーヒー。ほっとする定番の一杯。", price: 350, emoji: "☕", stock: 20, order: 1, active: true },
-  { id: "tea", name: "しゅわしゅわソーダ", description: "カラフルな果実を浮かべた、見た目も楽しいソーダ。", price: 400, emoji: "🥤", stock: 12, order: 2, active: true },
-  { id: "cake", name: "水玉クリームケーキ", description: "ふんわりスポンジに、ころんとかわいい水玉クリーム。", price: 450, emoji: "🍰", stock: 8, order: 3, active: true },
-  { id: "cookie", name: "ドットクッキー", description: "さくさく手作り。コーヒーと一緒にどうぞ。", price: 200, emoji: "🍪", stock: 0, order: 4, active: true }
+  { id: "melon-bread", name: "サクサクメロンパン", description: "香ばしい外皮と甘いメロン風味がたまらない、人気No.1の一品。", price: 250, emoji: "🥐", stock: 20, order: 1, active: true },
+  { id: "fondant-choco", name: "フォンダンショコラ", description: "中からトロっと溶ける、濃厚なチョコレートの贅沢スイーツ。", price: 250, emoji: "🍫", stock: 20, order: 2, active: true },
+  { id: "mini-panini", name: "ミニパニーニ", description: "サクッと焼き上げた食パンで、しょっぱい気分にぴったり。", price: 250, emoji: "🥪", stock: 20, order: 3, active: true },
+  { id: "salt-bread", name: "塩パン", description: "ホッと一息。食事の合間にちょうどよい、シンプルな塩パン。", price: 250, emoji: "🥖", stock: 20, order: 4, active: true },
+  { id: "ginger-ale", name: "ジンジャエール", description: "すっきりした風味で、パンと相性抜群のドリンク。", price: 0, emoji: "🧃", stock: 20, order: 5, active: true },
+  { id: "orange-juice", name: "オレンジジュース", description: "甘酸っぱくてごくごく飲みやすい、やさしい柑橘系ドリンク。", price: 0, emoji: "🍊", stock: 20, order: 6, active: true },
+  { id: "sprite", name: "スプライト", description: "さわやかな炭酸で、食事の後に気分転換におすすめ。", price: 0, emoji: "🥤", stock: 20, order: 7, active: true }
 ];
 
 export const getTableNumber = search => {
@@ -30,8 +33,8 @@ export const getCart = () => {
 };
 
 export const saveCart = cart => localStorage.setItem("cafe-cart", JSON.stringify(cart));
-export const yen = value => `¥${value.toLocaleString("ja-JP")}`;
-export const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({
+export const yen = value => value > 0 ? `¥${value.toLocaleString("ja-JP")}` : "未定";
+export const escapeHtml = value => String(value).replace(/[&<>\"']/g, character => ({
   "&": "&amp;",
   "<": "&lt;",
   ">": "&gt;",

@@ -239,7 +239,7 @@ FirebaseプロジェクトとHostingは設定済みです。合言葉ログイ�
 - [ ] Firebase Hosting と Functions をデプロイする
 - [ ] 事前確認ログインを一度だけ実施し、有効期限どおりに終了することを確認する
 
-### 4. 運用テスト
+### 4.運用テスト
 
 - [ ] 初期メニューが自動登録されることを確認する
 - [ ] 注文を作成し、在庫が減ることを確認する
@@ -386,6 +386,62 @@ Firebase の課金が必要なため、AWS Academy の無料枠を活用して�
 - [ ] スタッフ向け操作説明書を準備する
 - [ ] 文化祭当日用の手順書を作成する
 - [ ] 緊急時の停止手順を用意する
+
+## AWS Academy 用の公開手順
+
+AWS Academy 環境で公開する手順は [`AWS-ACADEMY-DEPLOY.md`](./AWS-ACADEMY-DEPLOY.md) を参照してください。
+
+- EC2 + Apache + PHP + MariaDB の構成
+- SSH でサーバー管理
+- HTTPS で公開
+- DB は EC2 内で閉じた構成
+- AWS Academy のネットワーク制限に注意
+
+公開の前提条件:
+- EC2 が public subnet にある
+- ルートテーブルに 0.0.0.0/0 -> Internet Gateway がある
+- Security Group の outbound が 0.0.0.0/0 になっている
+- `apt update` と `curl` が EC2 から通ること
+
+この条件が満たされない場合は、AWS Academy の外向き通信制限の影響で公開できません。
+
+## AWS 構築手順書
+
+AWS での実運用を行うときは、次の前提を守ってください。
+
+- サーバー管理は SSH 接続で行う
+- 一般利用者は HTTPS 接続でアクセスする
+- DB は EC2 内で閉じた構成にする
+- 22 番ポートと 3306 番ポートは外部公開しない
+- 80 番は HTTPS へリダイレクトする
+
+詳細は [`AWS-SETUP.md`](./AWS-SETUP.md) を参照してください。
+
+### 必須前提
+
+- SSH 接続: 管理者 PC から `ssh -i ... ubuntu@<EC2_PUBLIC_IP>`
+- HTTPS 接続: `https://cafe.example.com`
+- HTTP から HTTPS へのリダイレクト: `301 redirect`
+- MariaDB: EC2 ローカル接続のみに限定
+
+### 最低限の実装方針
+
+1. EC2 で Ubuntu を立ち上げる
+2. Apache + PHP + MariaDB をインストールする
+3. Let's Encrypt で HTTPS 証明書を発行する
+4. `/var/www/cafe` に Web アプリを配置する
+5. `/var/www/cafe/api` に PHP API を置く
+6. 22 番ポートは特定の IP のみ許可する
+7. 443 番ポートは公開する
+8. 3306 番ポートは閉じておく
+
+### 実運用時のアクセス条件
+
+- 管理者: SSH 接続（秘密鍵で認証）
+- スタッフ: HTTPS 経由で管理画面へアクセス
+- 顧客: HTTPS 経由で注文ページへアクセス
+
+これにより、サーバー管理と公開アクセスが役割分担され、セキュリティと運用のしやすさを両立できます。
 
 ## 変更の方針
 

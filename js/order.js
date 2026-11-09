@@ -1,4 +1,4 @@
-import { fetchOrderStatus, isFirebaseConfigured, placeOrder } from "./firebase.js";
+import { fetchOrderStatus, isApiConfigured, placeOrder } from "./api.js";
 import { DEFAULT_PRODUCTS, escapeHtml, getCart, getTableNumber, saveCart, yen } from "./store.js";
 
 const cartButton = document.querySelector("#cart-button");
@@ -29,7 +29,7 @@ if (cartButton) {
     document.querySelector("#cart-count").textContent = `${count}点`;
     document.querySelector("#cart-total").textContent = yen(total);
     document.querySelector("#dialog-total").textContent = yen(total);
-    checkoutButton.disabled = !cart.length || !isFirebaseConfigured || table.number === null;
+    checkoutButton.disabled = !cart.length || !isApiConfigured || table.number === null;
   };
 
   renderCart();
@@ -54,7 +54,7 @@ if (cartButton) {
   checkoutButton.addEventListener("click", async () => {
     const cart = getCart();
     const table = getTableNumber(window.location.search);
-    if (!cart.length || !isFirebaseConfigured || table.number === null) return;
+    if (!cart.length || !isApiConfigured || table.number === null) return;
     checkoutButton.disabled = true;
     statusMessage.textContent = "";
     try {

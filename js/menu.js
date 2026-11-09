@@ -1,4 +1,4 @@
-import { isFirebaseConfigured, subscribeProducts } from "./firebase.js";
+import { isApiConfigured, subscribeProducts } from "./api.js";
 import { DEFAULT_PRODUCTS, escapeHtml, getCart, getTableNumber, saveCart, yen } from "./store.js";
 
 const menuList = document.querySelector("#menu-list");
@@ -43,7 +43,7 @@ if (menuList) {
   };
 
   renderMenu();
-  if (isFirebaseConfigured) {
+  if (isApiConfigured) {
     message.hidden = true;
     subscribeProducts(nextProducts => {
       products = nextProducts.filter(product => product.active !== false);
@@ -55,7 +55,7 @@ if (menuList) {
       message.hidden = false;
     });
   } else {
-    message.textContent = "Firebase未設定のプレビューです。メニュー表示は確認できますが、注文受付にはFirebaseの設定が必要です。";
+    message.textContent = "APIサーバーが未接続のため、ローカルの初期メニューを表示しています。";
     message.hidden = false;
   }
 
